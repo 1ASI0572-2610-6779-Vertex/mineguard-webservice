@@ -8,19 +8,16 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "supervisors")
+@Table(name = "administrators")
 @Getter
 @Setter
 @NoArgsConstructor
-public class SupervisorPersistenceEntity extends AuditableAbstractPersistenceEntity {
+public class AdministratorPersistenceEntity extends AuditableAbstractPersistenceEntity {
 
     @Column(name = "full_name", nullable = false, length = 120)
     private String fullName;
 
-    @Column(name = "corporate_id", nullable = false, unique = true, length = 30)
-    private String corporateId;
-
-    @Column(name = "email", length = 120)
+    @Column(name = "email", unique = true, length = 120)
     private String email;
 
     @Enumerated(EnumType.STRING)

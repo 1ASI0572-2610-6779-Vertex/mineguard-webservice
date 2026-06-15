@@ -1,6 +1,6 @@
 package com.mineguard.platform.monitoring.domain.model.aggregates;
 
-import com.mineguard.platform.monitoring.application.domain.model.valueobjects.CardiacStatus;
+import com.mineguard.platform.monitoring.domain.model.valueobjects.CardiacStatus;
 import com.mineguard.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import lombok.Getter;
 import lombok.Setter;

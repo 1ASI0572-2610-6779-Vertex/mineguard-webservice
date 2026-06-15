@@ -4,8 +4,7 @@ import com.mineguard.platform.iam.domain.model.aggregates.Supervisor;
 import com.mineguard.platform.iam.interfaces.rest.resources.SupervisorResource;
 
 public final class SupervisorResourceFromEntityAssembler {
-    private SupervisorResourceFromEntityAssembler() {
-    }
+    private SupervisorResourceFromEntityAssembler() {}
 
     public static SupervisorResource toResourceFromEntity(Supervisor supervisor) {
         return new SupervisorResource(
@@ -13,6 +12,8 @@ public final class SupervisorResourceFromEntityAssembler {
                 supervisor.getFullName(),
                 supervisor.getCorporateId(),
                 supervisor.getEmail(),
-                supervisor.getAccessStatus().toSerialized());
+                supervisor.getAccessStatus().toSerialized(),
+                supervisor.getUserId()
+        );
     }
 }
