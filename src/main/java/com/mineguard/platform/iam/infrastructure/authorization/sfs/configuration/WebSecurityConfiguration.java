@@ -84,7 +84,7 @@ public class WebSecurityConfiguration {
                         ).permitAll()
                         // Read-only view-model endpoints polled by the frontends (dev-friendly, no token required)
                         .requestMatchers(org.springframework.http.HttpMethod.GET,
-                                "/supervisors/**", "/vehiclesInventory/**", "/driversDirectory/**", "/catalogSummary/**",
+                                "/supervisors/**", "/administrators/**", "/vehiclesInventory/**", "/driversDirectory/**",
                                 "/vehicles/**", "/operationalAlerts/**", "/auditLog/**", "/cardiacReadings/**",
                                 "/fleetSummary/**", "/liveMapVehicles/**", "/alerts/**", "/performance/**",
                                 "/dashboardSummary/**", "/dashboardTrend/**", "/dashboardRiskDrivers/**",

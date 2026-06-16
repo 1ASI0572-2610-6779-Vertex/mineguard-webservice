@@ -5,13 +5,12 @@ import com.mineguard.platform.iam.infrastructure.persistence.jpa.entities.Superv
 
 /** Translates between {@link Supervisor} aggregates and {@link SupervisorPersistenceEntity}. */
 public final class SupervisorPersistenceAssembler {
-    private SupervisorPersistenceAssembler() {
-    }
+    private SupervisorPersistenceAssembler() {}
 
     public static Supervisor toDomain(SupervisorPersistenceEntity entity) {
         if (entity == null) return null;
         var supervisor = new Supervisor(entity.getFullName(), entity.getCorporateId(),
-                entity.getEmail(), entity.getAccessStatus());
+                entity.getEmail(), entity.getAccessStatus(), entity.getUserId());
         supervisor.setId(entity.getId());
         return supervisor;
     }
@@ -23,6 +22,7 @@ public final class SupervisorPersistenceAssembler {
         entity.setCorporateId(supervisor.getCorporateId());
         entity.setEmail(supervisor.getEmail());
         entity.setAccessStatus(supervisor.getAccessStatus());
+        entity.setUserId(supervisor.getUserId());
         return entity;
     }
 }

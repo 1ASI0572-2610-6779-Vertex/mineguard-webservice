@@ -1,8 +1,8 @@
 package com.mineguard.platform.monitoring.domain.model.aggregates;
 
-import com.mineguard.platform.monitoring.application.domain.model.valueobjects.AlertPriority;
-import com.mineguard.platform.monitoring.application.domain.model.valueobjects.AlertStatus;
-import com.mineguard.platform.monitoring.application.domain.model.valueobjects.AlertType;
+import com.mineguard.platform.monitoring.domain.model.valueobjects.AlertPriority;
+import com.mineguard.platform.monitoring.domain.model.valueobjects.AlertStatus;
+import com.mineguard.platform.monitoring.domain.model.valueobjects.AlertType;
 import com.mineguard.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import lombok.Getter;
 import lombok.Setter;

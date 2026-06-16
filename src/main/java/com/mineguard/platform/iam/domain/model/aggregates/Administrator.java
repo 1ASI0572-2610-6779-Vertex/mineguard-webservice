@@ -1,38 +1,39 @@
 package com.mineguard.platform.iam.domain.model.aggregates;
 
-import com.mineguard.platform.iam.domain.model.commands.CreateSupervisorCommand;
+import com.mineguard.platform.iam.domain.model.commands.CreateAdministratorCommand;
 import com.mineguard.platform.iam.domain.model.valueobjects.AccessStatus;
 import com.mineguard.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Administrator aggregate root.
+ * Perfil de alto nivel que gestiona la plataforma y crea a los supervisores.
+ */
 @Getter
-public class Supervisor extends AbstractDomainAggregateRoot<Supervisor> {
+public class Administrator extends AbstractDomainAggregateRoot<Administrator> {
 
     @Setter private Long id;
     @Setter private String fullName;
-    @Setter private String corporateId;
     @Setter private String email;
     @Setter private AccessStatus accessStatus;
     @Setter private Long userId;
 
-    public Supervisor() {}
+    public Administrator() {}
 
-    public Supervisor(String fullName, String corporateId, String email, AccessStatus accessStatus, Long userId) {
+    public Administrator(String fullName, String email, AccessStatus accessStatus, Long userId) {
         this.fullName = fullName;
-        this.corporateId = corporateId;
         this.email = email;
         this.accessStatus = accessStatus;
         this.userId = userId;
     }
 
-    public Supervisor(CreateSupervisorCommand command) {
-        this(command.fullName(), command.corporateId(), command.email(), AccessStatus.ACTIVE, command.userId());
+    public Administrator(CreateAdministratorCommand command) {
+        this(command.fullName(), command.email(), AccessStatus.ACTIVE, command.userId());
     }
 
-    public Supervisor updateInformation(String fullName, String corporateId, String email, AccessStatus accessStatus) {
+    public Administrator updateInformation(String fullName, String email, AccessStatus accessStatus) {
         this.fullName = fullName;
-        this.corporateId = corporateId;
         this.email = email;
         if (accessStatus != null) {
             this.accessStatus = accessStatus;

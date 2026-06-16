@@ -13,9 +13,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-/** Supervisor administration directory (web "Gestion de Usuarios"). */
+import java.util.List;
+
 @RestController
 @RequestMapping(value = "/supervisors", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Supervisors", description = "Supervisor account administration")
@@ -30,8 +32,8 @@ public class SupervisorsController {
     }
 
     @GetMapping
-    @Operation(summary = "List supervisors", description = "Returns a flat array of supervisors (json-server compatible).")
-    public ResponseEntity<java.util.List<SupervisorResource>> getAll() {
+    @Operation(summary = "List supervisors", description = "Returns a flat array of supervisors.")
+    public ResponseEntity<List<SupervisorResource>> getAll() {
         var supervisors = supervisorQueryService.handle(new GetAllSupervisorsQuery()).stream()
                 .map(SupervisorResourceFromEntityAssembler::toResourceFromEntity)
                 .toList();
@@ -39,7 +41,8 @@ public class SupervisorsController {
     }
 
     @PostMapping
-    @Operation(summary = "Create supervisor")
+    @PreAuthorize("hasAuthority('ROLE_ADMINISTRATOR')")
+    @Operation(summary = "Create supervisor (Only for Administrators)")
     public ResponseEntity<?> create(@RequestBody CreateSupervisorResource resource) {
         var command = CreateSupervisorCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = supervisorCommandService.handle(command);
@@ -48,7 +51,8 @@ public class SupervisorsController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Update supervisor")
+    @PreAuthorize("hasAuthority('ROLE_ADMINISTRATOR')")
+    @Operation(summary = "Update supervisor (Only for Administrators)")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody UpdateSupervisorResource resource) {
         var command = UpdateSupervisorCommandFromResourceAssembler.toCommandFromResource(id, resource);
         var result = supervisorCommandService.handle(command);
