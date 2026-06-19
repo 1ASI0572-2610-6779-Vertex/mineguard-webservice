@@ -26,4 +26,10 @@ public class VehiclePersistenceEntity extends AuditableAbstractPersistenceEntity
     private String assignedDriverName;
     @Column(name = "shift_label", length = 60)
     private String shiftLabel;
+    @Column(name = "driver_id")
+    private Long driverId;
+    @Column(name = "vehicle_type", length = 80)
+    private String vehicleType;
+    @Column(name = "company_id")
+    private Long companyId;
 }

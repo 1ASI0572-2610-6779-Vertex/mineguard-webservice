@@ -20,6 +20,7 @@ public class Driver extends AbstractDomainAggregateRoot<Driver> {
     @Setter private ShiftStatus shiftStatus;
     @Setter private String lastAccess;
     @Setter private Long userId;
+    @Setter private Long companyId;
 
     public Driver() {
     }

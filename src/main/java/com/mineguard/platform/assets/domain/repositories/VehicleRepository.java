@@ -9,6 +9,7 @@ public interface VehicleRepository {
     Vehicle save(Vehicle vehicle);
     Optional<Vehicle> findById(Long id);
     List<Vehicle> findAll();
+    List<Vehicle> findAllByCompanyId(Long companyId);
     long count();
     long countByStatus(com.mineguard.platform.assets.domain.model.valueobjects.VehicleStatus status);
 }

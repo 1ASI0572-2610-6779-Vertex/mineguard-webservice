@@ -8,4 +8,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface VehiclePersistenceRepository extends JpaRepository<VehiclePersistenceEntity, Long> {
     long countByStatus(VehicleStatus status);
+    java.util.List<VehiclePersistenceEntity> findAllByCompanyId(Long companyId);
 }

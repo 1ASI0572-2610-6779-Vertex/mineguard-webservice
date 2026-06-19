@@ -12,6 +12,9 @@ public final class VehiclePersistenceAssembler {
         var v = new Vehicle(e.getCode(), e.getModel(), e.getCategory(), e.getStatus(),
                 e.getAssignedDriverName(), e.getShiftLabel());
         v.setId(e.getId());
+        v.setDriverId(e.getDriverId());
+        v.setVehicleType(e.getVehicleType());
+        v.setCompanyId(e.getCompanyId());
         return v;
     }
 
@@ -24,6 +27,9 @@ public final class VehiclePersistenceAssembler {
         e.setStatus(v.getStatus());
         e.setAssignedDriverName(v.getAssignedDriverName());
         e.setShiftLabel(v.getShiftLabel());
+        e.setDriverId(v.getDriverId());
+        e.setVehicleType(v.getVehicleType());
+        e.setCompanyId(v.getCompanyId());
         return e;
     }
 }

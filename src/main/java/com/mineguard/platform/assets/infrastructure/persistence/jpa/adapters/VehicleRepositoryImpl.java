@@ -34,6 +34,11 @@ public class VehicleRepositoryImpl implements VehicleRepository {
     }
 
     @Override
+    public List<Vehicle> findAllByCompanyId(Long companyId) {
+        return repository.findAllByCompanyId(companyId).stream().map(VehiclePersistenceAssembler::toDomain).toList();
+    }
+
+    @Override
     public long count() {
         return repository.count();
     }

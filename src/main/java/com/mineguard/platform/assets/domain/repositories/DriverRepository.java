@@ -9,6 +9,7 @@ public interface DriverRepository {
     Driver save(Driver driver);
     Optional<Driver> findById(Long id);
     List<Driver> findAll();
+    List<Driver> findAllByCompanyId(Long companyId);
     long count();
     long countByShiftStatus(com.mineguard.platform.assets.domain.model.valueobjects.ShiftStatus status);
 }
