@@ -13,6 +13,11 @@ public final class AlertPersistenceAssembler {
                 e.getTitle(), e.getDescription(), e.getVehicleClassKey(), e.getVehicleCode(),
                 e.getDriverName(), e.getResolutionNotes());
         a.setId(e.getId());
+        a.setTripId(e.getTripId());
+        a.setSensorId(e.getSensorId());
+        a.setRawType(e.getRawType());
+        a.setSeverity(e.getSeverity());
+        a.setCompanyId(e.getCompanyId());
         return a;
     }
 
@@ -30,6 +35,11 @@ public final class AlertPersistenceAssembler {
         e.setVehicleCode(a.getVehicleCode());
         e.setDriverName(a.getDriverName());
         e.setResolutionNotes(a.getResolutionNotes());
+        e.setTripId(a.getTripId());
+        e.setSensorId(a.getSensorId());
+        e.setRawType(a.getRawType());
+        e.setSeverity(a.getSeverity());
+        e.setCompanyId(a.getCompanyId());
         return e;
     }
 }

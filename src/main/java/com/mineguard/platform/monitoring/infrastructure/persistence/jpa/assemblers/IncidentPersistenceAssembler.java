@@ -11,6 +11,7 @@ public final class IncidentPersistenceAssembler {
         if (e == null) return null;
         var i = new Incident(e.getAlertId(), e.getDescription(), e.getIncidentDate(), e.getStatus(), e.getSeverity());
         i.setId(e.getId());
+        i.setCompanyId(e.getCompanyId());
         return i;
     }
 
@@ -22,6 +23,7 @@ public final class IncidentPersistenceAssembler {
         e.setIncidentDate(i.getIncidentDate());
         e.setStatus(i.getStatus());
         e.setSeverity(i.getSeverity());
+        e.setCompanyId(i.getCompanyId());
         return e;
     }
 }

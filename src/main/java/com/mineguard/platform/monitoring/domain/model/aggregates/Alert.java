@@ -23,6 +23,11 @@ public class Alert extends AbstractDomainAggregateRoot<Alert> {
     @Setter private String vehicleCode;
     @Setter private String driverName;
     @Setter private String resolutionNotes;
+    @Setter private Long tripId;
+    @Setter private Long sensorId;
+    @Setter private String rawType;
+    @Setter private String severity;
+    @Setter private Long companyId;
 
     public Alert() {
     }
@@ -41,6 +46,18 @@ public class Alert extends AbstractDomainAggregateRoot<Alert> {
         this.vehicleCode = vehicleCode;
         this.driverName = driverName;
         this.resolutionNotes = resolutionNotes;
+    }
+
+    public Alert(Long tripId, Long sensorId, String rawType, String severity, AlertStatus status, String occurredAt) {
+        this.tripId = tripId;
+        this.sensorId = sensorId;
+        this.rawType = rawType;
+        this.severity = severity;
+        this.type = AlertType.fromSerialized(rawType);
+        this.priority = AlertPriority.fromSerialized(severity);
+        this.status = status;
+        this.occurredAt = occurredAt;
+        this.code = null;
     }
 
     /** Updates classification fields (supervisor alert management). */

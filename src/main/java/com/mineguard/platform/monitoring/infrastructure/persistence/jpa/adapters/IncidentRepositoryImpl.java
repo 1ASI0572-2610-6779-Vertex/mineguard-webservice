@@ -25,4 +25,9 @@ public class IncidentRepositoryImpl implements IncidentRepository {
     public List<Incident> findAll() {
         return repository.findAll().stream().map(IncidentPersistenceAssembler::toDomain).toList();
     }
+
+    @Override
+    public List<Incident> findAllByCompanyId(Long companyId) {
+        return repository.findAllByCompanyId(companyId).stream().map(IncidentPersistenceAssembler::toDomain).toList();
+    }
 }

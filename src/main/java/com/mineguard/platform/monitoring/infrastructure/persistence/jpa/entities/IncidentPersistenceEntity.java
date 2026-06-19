@@ -22,4 +22,6 @@ public class IncidentPersistenceEntity extends AuditableAbstractPersistenceEntit
     private String status;
     @Column(length = 20)
     private String severity;
+    @Column(name = "company_id")
+    private Long companyId;
 }

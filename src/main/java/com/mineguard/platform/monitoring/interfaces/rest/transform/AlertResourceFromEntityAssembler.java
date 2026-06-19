@@ -8,7 +8,9 @@ public final class AlertResourceFromEntityAssembler {
     }
 
     public static AlertResource toResourceFromEntity(Alert a) {
-        return new AlertResource(a.getId(), a.getCode(), a.getType().toSerialized(), a.getPriority().toSerialized(),
+        var type = a.getRawType() != null && !a.getRawType().isBlank() ? a.getRawType() : a.getType().toSerialized();
+        var priority = a.getSeverity() != null && !a.getSeverity().isBlank() ? a.getSeverity() : a.getPriority().toSerialized();
+        return new AlertResource(a.getId(), a.getCode(), type, priority,
                 a.getStatus().toSerialized(), a.getOccurredAt(), a.getTitle(), a.getDescription(),
                 a.getVehicleClassKey(), a.getVehicleCode(), a.getDriverName(), a.getResolutionNotes());
     }

@@ -9,4 +9,5 @@ public interface AlertRepository {
     Alert save(Alert alert);
     Optional<Alert> findById(Long id);
     List<Alert> findAll();
+    List<Alert> findAllByCompanyId(Long companyId);
 }
