@@ -31,4 +31,9 @@ public class AlertRepositoryImpl implements AlertRepository {
     public List<Alert> findAll() {
         return repository.findAll().stream().map(AlertPersistenceAssembler::toDomain).toList();
     }
+
+    @Override
+    public List<Alert> findAllByCompanyId(Long companyId) {
+        return repository.findAllByCompanyId(companyId).stream().map(AlertPersistenceAssembler::toDomain).toList();
+    }
 }

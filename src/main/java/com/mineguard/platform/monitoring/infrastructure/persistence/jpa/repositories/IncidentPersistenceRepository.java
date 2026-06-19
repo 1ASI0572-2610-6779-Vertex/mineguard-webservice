@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface IncidentPersistenceRepository extends JpaRepository<IncidentPersistenceEntity, Long> {
+    java.util.List<IncidentPersistenceEntity> findAllByCompanyId(Long companyId);
 }

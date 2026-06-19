@@ -13,6 +13,7 @@ public class Incident extends AbstractDomainAggregateRoot<Incident> {
     @Setter private String incidentDate;
     @Setter private String status;
     @Setter private String severity;
+    @Setter private Long companyId;
 
     public Incident() {
     }

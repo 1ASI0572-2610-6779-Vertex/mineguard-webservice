@@ -7,4 +7,5 @@ import java.util.List;
 public interface IncidentRepository {
     Incident save(Incident incident);
     List<Incident> findAll();
+    List<Incident> findAllByCompanyId(Long companyId);
 }

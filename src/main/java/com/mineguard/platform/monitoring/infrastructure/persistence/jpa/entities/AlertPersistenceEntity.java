@@ -40,4 +40,14 @@ public class AlertPersistenceEntity extends AuditableAbstractPersistenceEntity {
     private String driverName;
     @Column(name = "resolution_notes", length = 500)
     private String resolutionNotes;
+    @Column(name = "trip_id")
+    private Long tripId;
+    @Column(name = "sensor_id")
+    private Long sensorId;
+    @Column(name = "raw_type", length = 60)
+    private String rawType;
+    @Column(length = 20)
+    private String severity;
+    @Column(name = "company_id")
+    private Long companyId;
 }

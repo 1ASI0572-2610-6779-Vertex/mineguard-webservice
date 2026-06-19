@@ -10,6 +10,13 @@ public enum AlertType {
 
     public static AlertType fromSerialized(String value) {
         if (value == null) return COLLISION;
-        return AlertType.valueOf(value.trim().toUpperCase());
+        return switch (value.trim().toLowerCase()) {
+            case "fatigue_risk", "fatigue" -> FATIGUE;
+            case "proximity_collision", "collision" -> PROXIMITY_COLLISION;
+            case "speed_excess", "restricted_zone_entry", "high_heart_rate", "connection_lost",
+                    "sensor_maintenance" -> PROXIMITY;
+            case "imminent_collision" -> IMMINENT_COLLISION;
+            default -> AlertType.valueOf(value.trim().toUpperCase());
+        };
     }
 }

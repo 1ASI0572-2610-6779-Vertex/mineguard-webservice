@@ -10,6 +10,10 @@ public enum AlertStatus {
 
     public static AlertStatus fromSerialized(String value) {
         if (value == null) return ACTIVE;
-        return AlertStatus.valueOf(value.trim().toUpperCase());
+        return switch (value.trim().toLowerCase()) {
+            case "reviewed", "closed", "resolved" -> RESOLVED;
+            case "false_alarm" -> FALSE_ALARM;
+            default -> AlertStatus.valueOf(value.trim().toUpperCase());
+        };
     }
 }
