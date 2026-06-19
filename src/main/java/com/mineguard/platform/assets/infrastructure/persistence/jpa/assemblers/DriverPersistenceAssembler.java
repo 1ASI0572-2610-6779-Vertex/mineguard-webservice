@@ -12,6 +12,7 @@ public final class DriverPersistenceAssembler {
         var d = new Driver(e.getFullName(), e.getOperatorId(), e.getLicense(), e.getSpecialty(),
                 e.getShiftStatus(), e.getLastAccess(), e.getUserId());
         d.setId(e.getId());
+        d.setCompanyId(e.getCompanyId());
         return d;
     }
 
@@ -25,6 +26,7 @@ public final class DriverPersistenceAssembler {
         e.setShiftStatus(d.getShiftStatus());
         e.setLastAccess(d.getLastAccess());
         e.setUserId(d.getUserId());
+        e.setCompanyId(d.getCompanyId());
         return e;
     }
 }

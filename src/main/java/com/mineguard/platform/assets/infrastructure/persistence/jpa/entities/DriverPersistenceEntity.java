@@ -28,4 +28,6 @@ public class DriverPersistenceEntity extends AuditableAbstractPersistenceEntity 
     private String lastAccess;
     @Column(name = "user_id")
     private Long userId;
+    @Column(name = "company_id")
+    private Long companyId;
 }

@@ -19,6 +19,9 @@ public class Vehicle extends AbstractDomainAggregateRoot<Vehicle> {
     @Setter private VehicleStatus status;
     @Setter private String assignedDriverName;
     @Setter private String shiftLabel;
+    @Setter private Long driverId;
+    @Setter private String vehicleType;
+    @Setter private Long companyId;
 
     public Vehicle() {
     }
@@ -31,6 +34,15 @@ public class Vehicle extends AbstractDomainAggregateRoot<Vehicle> {
         this.status = status;
         this.assignedDriverName = assignedDriverName;
         this.shiftLabel = shiftLabel;
+    }
+
+    public Vehicle(Long driverId, String code, String vehicleType, VehicleStatus status) {
+        this.driverId = driverId;
+        this.code = code;
+        this.vehicleType = vehicleType;
+        this.model = vehicleType;
+        this.category = vehicleType;
+        this.status = status;
     }
 
     /** Updates the editable inventory fields. */

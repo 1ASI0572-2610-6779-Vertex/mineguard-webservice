@@ -34,6 +34,11 @@ public class DriverRepositoryImpl implements DriverRepository {
     }
 
     @Override
+    public List<Driver> findAllByCompanyId(Long companyId) {
+        return repository.findAllByCompanyId(companyId).stream().map(DriverPersistenceAssembler::toDomain).toList();
+    }
+
+    @Override
     public long count() {
         return repository.count();
     }
