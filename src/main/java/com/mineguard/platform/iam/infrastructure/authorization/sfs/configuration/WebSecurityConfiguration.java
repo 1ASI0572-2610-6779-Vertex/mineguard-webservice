@@ -75,11 +75,17 @@ public class WebSecurityConfiguration {
                 .exceptionHandling(handling -> handling.authenticationEntryPoint(unauthorizedRequestHandler))
                 .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(org.springframework.http.HttpMethod.POST,
+                                "/api/v1/subscriptions",
+                                "/api/v1/sessions",
+                                "/api/v1/sessions/mobile",
+                                "/api/v1/users",
+                                "/api/v1/users/password-resets"
+                        ).permitAll()
                         .requestMatchers(
                                 "/authentication/**",
                                 "/auth/**",
                                 "/api/v1/authentication/**",
-                                "/api/v1/subscriptions/company-registration",
                                 "/api/v1/authentication/forgot-password",
                                 "/api/v1/health-monitoring/**",
                                 // IoT routes are authenticated by EdgeApiKeyFilter, not by JWT

@@ -15,11 +15,13 @@ import com.mineguard.platform.subscriptions.application.commandservices.CompanyR
 import com.mineguard.platform.subscriptions.domain.model.aggregates.Company;
 import com.mineguard.platform.subscriptions.domain.model.commands.RegisterCompanyCommand;
 import com.mineguard.platform.subscriptions.domain.repositories.CompanyRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 /** Provisions a new tenant: creates the company and its administrator user in one transaction. */
+@Slf4j
 @Service
 public class CompanyRegistrationCommandServiceImpl implements CompanyRegistrationCommandService {
 
@@ -67,6 +69,7 @@ public class CompanyRegistrationCommandServiceImpl implements CompanyRegistratio
                 List.of(adminRole),
                 true));
 
+        log.info("[DEV FAILSAFE] CONTRASEÑA TEMPORAL GENERADA PARA {}: {}", command.adminEmail(), tempPassword);
         emailService.sendCredentialsEmail(command.adminEmail(), "ROLE_ADMINISTRATOR",
                 generatedUsername, command.companyName(), tempPassword);
 
