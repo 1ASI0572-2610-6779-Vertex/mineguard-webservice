@@ -6,7 +6,10 @@ import com.mineguard.platform.assets.infrastructure.persistence.jpa.assemblers.T
 import com.mineguard.platform.assets.infrastructure.persistence.jpa.repositories.TripPersistenceRepository;
 import org.springframework.stereotype.Repository;
 
+import com.mineguard.platform.assets.domain.model.valueobjects.TripStatus;
+
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class TripRepositoryImpl implements TripRepository {
@@ -24,5 +27,15 @@ public class TripRepositoryImpl implements TripRepository {
     @Override
     public List<Trip> findAll() {
         return repository.findAll().stream().map(TripPersistenceAssembler::toDomain).toList();
+    }
+
+    @Override
+    public List<Trip> findAllByCompanyId(Long companyId) {
+        return repository.findAllByCompanyId(companyId).stream().map(TripPersistenceAssembler::toDomain).toList();
+    }
+
+    @Override
+    public Optional<Trip> findFirstByVehicleIdAndStatus(Long vehicleId, TripStatus status) {
+        return repository.findFirstByVehicleIdAndStatus(vehicleId, status).map(TripPersistenceAssembler::toDomain);
     }
 }

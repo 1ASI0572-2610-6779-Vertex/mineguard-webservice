@@ -47,4 +47,9 @@ public class DriverRepositoryImpl implements DriverRepository {
     public long countByShiftStatus(ShiftStatus status) {
         return repository.countByShiftStatus(status);
     }
+
+    @Override
+    public Optional<Driver> findByUserId(Long userId) {
+        return repository.findByUserId(userId).map(DriverPersistenceAssembler::toDomain);
+    }
 }
