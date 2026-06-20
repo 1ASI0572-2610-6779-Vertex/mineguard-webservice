@@ -7,6 +7,7 @@ import com.mineguard.platform.monitoring.infrastructure.persistence.jpa.reposito
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class LiveMapVehicleRepositoryImpl implements LiveMapVehicleRepository {
@@ -24,5 +25,10 @@ public class LiveMapVehicleRepositoryImpl implements LiveMapVehicleRepository {
     @Override
     public List<LiveMapVehicle> findAll() {
         return repository.findAll().stream().map(LiveMapVehiclePersistenceAssembler::toDomain).toList();
+    }
+
+    @Override
+    public Optional<LiveMapVehicle> findByVehicleId(Long vehicleId) {
+        return repository.findByVehicleId(vehicleId).map(LiveMapVehiclePersistenceAssembler::toDomain);
     }
 }

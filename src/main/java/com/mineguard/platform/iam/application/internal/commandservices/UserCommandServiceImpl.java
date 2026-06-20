@@ -4,13 +4,17 @@ import com.mineguard.platform.iam.application.commandservices.UserCommandService
 import com.mineguard.platform.iam.application.internal.outboundservices.hashing.HashingService;
 import com.mineguard.platform.iam.application.internal.outboundservices.tokens.TokenService;
 import com.mineguard.platform.iam.domain.model.aggregates.User;
+import com.mineguard.platform.iam.domain.model.commands.ChangePasswordCommand;
 import com.mineguard.platform.iam.domain.model.commands.MobileSignInCommand;
+import com.mineguard.platform.iam.domain.model.commands.ResetPasswordCommand;
 import com.mineguard.platform.iam.domain.model.commands.SignInCommand;
 import com.mineguard.platform.iam.domain.model.commands.SignUpCommand;
 import com.mineguard.platform.iam.domain.repositories.RoleRepository;
 import com.mineguard.platform.iam.domain.repositories.UserRepository;
 import com.mineguard.platform.shared.application.result.ApplicationError;
 import com.mineguard.platform.shared.application.result.Result;
+import com.mineguard.platform.shared.domain.utils.PasswordGenerator;
+import com.mineguard.platform.shared.infrastructure.mail.IEmailService;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
 
@@ -24,13 +28,16 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final HashingService hashingService;
     private final TokenService tokenService;
     private final RoleRepository roleRepository;
+    private final IEmailService emailService;
 
     public UserCommandServiceImpl(UserRepository userRepository, HashingService hashingService,
-                                  TokenService tokenService, RoleRepository roleRepository) {
+                                  TokenService tokenService, RoleRepository roleRepository,
+                                  IEmailService emailService) {
         this.userRepository = userRepository;
         this.hashingService = hashingService;
         this.tokenService = tokenService;
         this.roleRepository = roleRepository;
+        this.emailService = emailService;
     }
 
     @Override
@@ -73,5 +80,34 @@ public class UserCommandServiceImpl implements UserCommandService {
         return userRepository.findByUsername(command.username())
                 .<Result<User, ApplicationError>>map(Result::success)
                 .orElseGet(() -> Result.failure(ApplicationError.unexpected("sign-up", "Created user could not be reloaded")));
+    }
+
+    @Override
+    public Result<Void, ApplicationError> handle(ResetPasswordCommand command) {
+        userRepository.findByEmail(command.email()).ifPresent(user -> {
+            var tempPassword = PasswordGenerator.generate();
+            user.setPassword(hashingService.encode(tempPassword));
+            user.setRequiresPasswordChange(true);
+            userRepository.save(user);
+            emailService.sendPasswordResetEmail(command.email(), tempPassword);
+        });
+        // Always return success — never disclose whether the email exists
+        return Result.success(null);
+    }
+
+    @Override
+    public Result<User, ApplicationError> handle(ChangePasswordCommand command) {
+        var userOpt = userRepository.findById(command.userId());
+        if (userOpt.isEmpty()) {
+            return Result.failure(ApplicationError.notFound("User", String.valueOf(command.userId())));
+        }
+        if (command.newPassword() == null || command.newPassword().isBlank()) {
+            return Result.failure(ApplicationError.validationError("newPassword", "Password must not be blank"));
+        }
+        var user = userOpt.get();
+        user.setPassword(hashingService.encode(command.newPassword()));
+        user.setRequiresPasswordChange(false);
+        userRepository.save(user);
+        return Result.success(user);
     }
 }

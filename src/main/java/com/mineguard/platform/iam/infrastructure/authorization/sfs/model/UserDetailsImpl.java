@@ -17,15 +17,18 @@ import java.util.stream.Collectors;
 public class UserDetailsImpl implements UserDetails {
     private final String username;
     private final String password;
+    private final Long companyId;
     private final boolean accountNonExpired = true;
     private final boolean accountNonLocked = true;
     private final boolean credentialsNonExpired = true;
     private final boolean enabled = true;
     private final Collection<? extends GrantedAuthority> authorities;
 
-    public UserDetailsImpl(String username, String password, Collection<? extends GrantedAuthority> authorities) {
+    public UserDetailsImpl(String username, String password, Long companyId,
+                           Collection<? extends GrantedAuthority> authorities) {
         this.username = username;
         this.password = password;
+        this.companyId = companyId;
         this.authorities = authorities;
     }
 
@@ -33,7 +36,7 @@ public class UserDetailsImpl implements UserDetails {
         var authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority(role.getStringName()))
                 .collect(Collectors.toList());
-        return new UserDetailsImpl(user.getUsername(), user.getPassword(), authorities);
+        return new UserDetailsImpl(user.getUsername(), user.getPassword(), user.getCompanyId(), authorities);
     }
 
     @Override

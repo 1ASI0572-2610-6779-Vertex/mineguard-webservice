@@ -7,6 +7,7 @@ import com.mineguard.platform.monitoring.infrastructure.persistence.jpa.reposito
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class SensorRepositoryImpl implements SensorRepository {
@@ -29,5 +30,10 @@ public class SensorRepositoryImpl implements SensorRepository {
     @Override
     public long count() {
         return repository.count();
+    }
+
+    @Override
+    public Optional<Sensor> findByDeviceId(String deviceId) {
+        return repository.findByDeviceId(deviceId).map(SensorPersistenceAssembler::toDomain);
     }
 }

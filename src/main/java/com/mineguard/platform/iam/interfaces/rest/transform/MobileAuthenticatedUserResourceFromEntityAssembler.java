@@ -7,9 +7,9 @@ public final class MobileAuthenticatedUserResourceFromEntityAssembler {
     private MobileAuthenticatedUserResourceFromEntityAssembler() {
     }
 
-    public static MobileAuthenticatedUserResource toResourceFromEntity(User user, String token) {
+    public static MobileAuthenticatedUserResource toResourceFromEntity(User user, String token, Long driverId) {
         var workerId = user.getUsername();
         var fullName = user.getFullName() != null ? user.getFullName() : user.getUsername();
-        return new MobileAuthenticatedUserResource(workerId, fullName, RoleLabel.mobile(user), token);
+        return new MobileAuthenticatedUserResource(workerId, fullName, RoleLabel.mobile(user), token, driverId);
     }
 }

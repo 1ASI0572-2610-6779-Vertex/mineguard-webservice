@@ -30,10 +30,15 @@ public class User extends AbstractDomainAggregateRoot<User> {
     @Setter
     private String fullName;
     @Setter
+    private Long companyId;
+    @Setter
     private Set<Role> roles;
+    @Setter
+    private boolean requiresPasswordChange;
 
     public User() {
         this.roles = new HashSet<>();
+        this.requiresPasswordChange = false;
     }
 
     public User(String username, String password) {
@@ -47,6 +52,18 @@ public class User extends AbstractDomainAggregateRoot<User> {
         this.email = email;
         this.fullName = fullName;
         addRoles(roles);
+    }
+
+    public User(String username, String password, String email, String fullName, Long companyId, List<Role> roles) {
+        this(username, password, email, fullName, roles);
+        this.companyId = companyId;
+    }
+
+    /** Constructor used when the password is auto-generated and must be changed on first login. */
+    public User(String username, String password, String email, String fullName, Long companyId,
+                List<Role> roles, boolean requiresPasswordChange) {
+        this(username, password, email, fullName, companyId, roles);
+        this.requiresPasswordChange = requiresPasswordChange;
     }
 
     /** Add a role to the user. */

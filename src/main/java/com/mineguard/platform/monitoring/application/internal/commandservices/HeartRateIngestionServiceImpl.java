@@ -4,13 +4,14 @@ import com.mineguard.platform.iam.interfaces.acl.IamContextFacade;
 import com.mineguard.platform.monitoring.application.commandservices.HeartRateIngestionService;
 import com.mineguard.platform.monitoring.domain.model.aggregates.Alert;
 import com.mineguard.platform.monitoring.domain.model.aggregates.HeartRateReading;
+import com.mineguard.platform.monitoring.domain.model.aggregates.SensorReading;
 import com.mineguard.platform.monitoring.domain.model.commands.IngestHeartRateCommand;
 import com.mineguard.platform.monitoring.domain.model.valueobjects.AlertPriority;
 import com.mineguard.platform.monitoring.domain.model.valueobjects.AlertStatus;
 import com.mineguard.platform.monitoring.domain.model.valueobjects.AlertType;
 import com.mineguard.platform.monitoring.domain.model.valueobjects.CardiacStatus;
 import com.mineguard.platform.monitoring.domain.repositories.AlertRepository;
-import com.mineguard.platform.monitoring.domain.repositories.HeartRateReadingRepository;
+import com.mineguard.platform.monitoring.domain.repositories.SensorReadingRepository;
 import com.mineguard.platform.shared.application.result.ApplicationError;
 import com.mineguard.platform.shared.application.result.Result;
 import org.springframework.stereotype.Service;
@@ -22,14 +23,14 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class HeartRateIngestionServiceImpl implements HeartRateIngestionService {
-    private final HeartRateReadingRepository heartRateReadingRepository;
+    private final SensorReadingRepository sensorReadingRepository;
     private final AlertRepository alertRepository;
     private final IamContextFacade iamContextFacade;
 
-    public HeartRateIngestionServiceImpl(HeartRateReadingRepository heartRateReadingRepository,
+    public HeartRateIngestionServiceImpl(SensorReadingRepository sensorReadingRepository,
                                          AlertRepository alertRepository,
                                          IamContextFacade iamContextFacade) {
-        this.heartRateReadingRepository = heartRateReadingRepository;
+        this.sensorReadingRepository = sensorReadingRepository;
         this.alertRepository = alertRepository;
         this.iamContextFacade = iamContextFacade;
     }
@@ -48,17 +49,20 @@ public class HeartRateIngestionServiceImpl implements HeartRateIngestionService 
         var driverId = iamContextFacade.getDriverIdByDeviceId(command.deviceId()).orElse(null);
         var createdAt = command.createdAt() != null ? command.createdAt() : java.time.Instant.now().toString();
         var reading = new HeartRateReading(command.deviceId(), driverId, command.bpm(), createdAt);
-        var saved = heartRateReadingRepository.save(reading);
+        var savedTelemetry = sensorReadingRepository.save(new SensorReading(driverId, "heart_rate", command.bpm(), createdAt));
+        reading.setId(savedTelemetry.getId());
 
-        if (saved.indicatesFatigue()) {
-            var status = saved.cardiacStatus();
+        if (reading.indicatesFatigue()) {
+            var status = reading.cardiacStatus();
             var priority = status == CardiacStatus.CRITICAL ? AlertPriority.CRITICAL : AlertPriority.WARNING;
             var alert = new Alert(
-                    "HR-" + saved.getId(), AlertType.FATIGUE, priority, AlertStatus.ACTIVE, createdAt,
+                    "HR-" + reading.getId(), AlertType.FATIGUE, priority, AlertStatus.ACTIVE, createdAt,
                     "Fatigue detected", "Abnormal heart rate (" + command.bpm() + " bpm) reported by device " + command.deviceId(),
                     "monitoring.alerts.vehicleClass.light", null, null, null);
+            alert.setRawType("high_heart_rate");
+            alert.setSeverity(priority.toSerialized());
             alertRepository.save(alert);
         }
-        return Result.success(saved);
+        return Result.success(reading);
     }
 }

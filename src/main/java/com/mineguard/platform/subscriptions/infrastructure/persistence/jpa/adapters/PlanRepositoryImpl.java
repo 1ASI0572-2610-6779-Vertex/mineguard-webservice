@@ -1,27 +1,15 @@
-﻿package com.mineguard.platform.subscriptions.infrastructure.persistence.jpa.adapters;
-import com.mineguard.platform.subscriptions.domain.model.entities.Plan;
+package com.mineguard.platform.subscriptions.infrastructure.persistence.jpa.adapters;
+import com.mineguard.platform.subscriptions.domain.model.aggregates.Plan;
 import com.mineguard.platform.subscriptions.domain.repositories.PlanRepository;
 import com.mineguard.platform.subscriptions.infrastructure.persistence.jpa.assemblers.PlanPersistenceAssembler;
 import com.mineguard.platform.subscriptions.infrastructure.persistence.jpa.repositories.PlanPersistenceRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
-import java.util.Optional;
 @Repository
 public class PlanRepositoryImpl implements PlanRepository {
-    private final PlanPersistenceRepository repository;
-    public PlanRepositoryImpl(PlanPersistenceRepository repository) {
-        this.repository = repository;
-    }
-    @Override
-    public Plan save(Plan plan) {
-        return PlanPersistenceAssembler.toDomain(repository.save(PlanPersistenceAssembler.toEntity(plan)));
-    }
-    @Override
-    public Optional<Plan> findById(Long id) {
-        return repository.findById(id).map(PlanPersistenceAssembler::toDomain);
-    }
-    @Override
-    public List<Plan> findAll() {
-        return repository.findAll().stream().map(PlanPersistenceAssembler::toDomain).toList();
-    }
+    private final PlanPersistenceRepository r;
+    public PlanRepositoryImpl(PlanPersistenceRepository r){this.r=r;}
+    public Plan save(Plan p){return PlanPersistenceAssembler.toDomain(r.save(PlanPersistenceAssembler.toEntity(p)));}
+    public List<Plan> findAll(){return r.findAll().stream().map(PlanPersistenceAssembler::toDomain).toList();}
+    public long count(){return r.count();}
 }

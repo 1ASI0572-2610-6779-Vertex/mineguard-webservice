@@ -18,4 +18,6 @@ public class SensorPersistenceEntity extends AuditableAbstractPersistenceEntity 
     private String sensorType;
     @Column(length = 20)
     private String status;
+    @Column(name = "device_id", length = 80)
+    private String deviceId;
 }

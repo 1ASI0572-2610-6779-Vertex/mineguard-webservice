@@ -8,6 +8,7 @@ import lombok.Setter;
 @Getter
 public class LiveMapVehicle extends AbstractDomainAggregateRoot<LiveMapVehicle> {
     @Setter private Long id;
+    @Setter private Long vehicleId;
     @Setter private String code;
     @Setter private String vehicleType;
     @Setter private double latitude;

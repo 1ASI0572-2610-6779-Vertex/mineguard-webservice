@@ -7,12 +7,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/** JPA persistence entity for supervisor directory accounts. */
 @Entity
 @Table(name = "supervisors")
 @Getter
 @Setter
 @NoArgsConstructor
 public class SupervisorPersistenceEntity extends AuditableAbstractPersistenceEntity {
+
+    @Column(name = "user_id")
+    private Long userId;
 
     @Column(name = "full_name", nullable = false, length = 120)
     private String fullName;
@@ -26,7 +30,4 @@ public class SupervisorPersistenceEntity extends AuditableAbstractPersistenceEnt
     @Enumerated(EnumType.STRING)
     @Column(name = "access_status", length = 20, nullable = false)
     private AccessStatus accessStatus;
-
-    @Column(name = "user_id", nullable = false, unique = true)
-    private Long userId;
 }
