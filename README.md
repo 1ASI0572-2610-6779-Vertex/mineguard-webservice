@@ -28,7 +28,7 @@ OpenAPI docs, i18n, and a snake_case + pluralized table naming strategy.
 ```
 src/main/java/com/mineguard/platform/
 ├── iam/            # Users, Roles, Supervisors, Devices, JWT auth (web + mobile + edge device)
-├── subscriptions/  # Company, Plan, Subscription (domain only; seeded, no REST)
+├── subscriptions/  # Subscription lifecycle, plans, payments and billing REST endpoints
 ├── monitoring/     # Sensor, SensorReading, Alert, Incident, edge heart-rate ingestion + view models
 ├── profile/        # Reserved skeleton (4 empty layers — frontends don't consume profiles yet)
 ├── planning/       # GeofenceZone, ZoneBoundary, ZonePermission (domain only; seeded, no REST)
@@ -80,6 +80,17 @@ mvn spring-boot:run
 - `POST /auth/sign-in` → `{workerId, fullName, role, token}` (mobile, by worker id)
 - `GET/POST /supervisors`, `PUT /supervisors/{id}`
 
+### Subscriptions
+- `GET /api/v1/plans`
+- `GET /api/v1/subscriptions/{id}`
+- `GET /api/v1/subscriptions/user/{userId}`
+- `POST /api/v1/subscriptions`
+- `POST /api/v1/subscriptions/{id}/cancel`
+- `POST /api/v1/subscriptions/{id}/renew`
+- `PUT /api/v1/subscriptions/{id}/payment-method`
+- `POST /api/v1/subscriptions/{id}/payments`
+- `POST /api/v1/subscriptions/{id}/payments/{paymentId}/retry`
+
 ### Assets
 - `GET/POST /vehiclesInventory`, `PUT /vehiclesInventory/{id}` — `operational|maintenance`
 - `GET /driversDirectory`, `GET /catalogSummary`
@@ -118,5 +129,5 @@ view-model GET endpoints polled by the frontends. The smart-band edge authentica
 - **Persistence-agnostic domain:** aggregates carry no JPA; `*PersistenceEntity` + `*PersistenceAssembler`
   + `*RepositoryImpl` adapters bridge to the domain repository ports.
 - **i18n:** `Accept-Language` header (`en` default, `es`).
-- `subscriptions`, `planning` and `profile` are intentionally partial/empty (the frontends don't
-  consume them yet) but keep the full four-layer folder structure.
+- `subscriptions` now includes the REST API for plan consultation, subscription lifecycle, payment
+  processing and payment-method updates; `planning` and `profile` remain reserved/partial.
