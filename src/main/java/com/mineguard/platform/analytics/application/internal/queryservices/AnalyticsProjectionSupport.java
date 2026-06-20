@@ -19,6 +19,7 @@ import com.mineguard.platform.monitoring.domain.repositories.AlertRepository;
 import com.mineguard.platform.monitoring.domain.repositories.IncidentRepository;
 import com.mineguard.platform.monitoring.domain.repositories.SensorReadingRepository;
 import com.mineguard.platform.monitoring.domain.repositories.SensorRepository;
+import com.mineguard.platform.shared.infrastructure.security.SecurityContextFacade;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -47,13 +49,15 @@ class AnalyticsProjectionSupport {
     private final PerformanceMetricPersistenceRepository performanceMetricRepository;
     private final UserRepository userRepository;
     private final SupervisorRepository supervisorRepository;
+    private final SecurityContextFacade securityContext;
 
     AnalyticsProjectionSupport(DriverRepository driverRepository, VehicleRepository vehicleRepository,
                                TripRepository tripRepository, SensorRepository sensorRepository,
                                SensorReadingRepository sensorReadingRepository, AlertRepository alertRepository,
                                IncidentRepository incidentRepository,
                                PerformanceMetricPersistenceRepository performanceMetricRepository,
-                               UserRepository userRepository, SupervisorRepository supervisorRepository) {
+                               UserRepository userRepository, SupervisorRepository supervisorRepository,
+                               SecurityContextFacade securityContext) {
         this.driverRepository = driverRepository;
         this.vehicleRepository = vehicleRepository;
         this.tripRepository = tripRepository;
@@ -64,30 +68,108 @@ class AnalyticsProjectionSupport {
         this.performanceMetricRepository = performanceMetricRepository;
         this.userRepository = userRepository;
         this.supervisorRepository = supervisorRepository;
+        this.securityContext = securityContext;
     }
 
-    List<Driver> drivers() { return driverRepository.findAll(); }
-    List<Vehicle> vehicles() { return vehicleRepository.findAll(); }
-    List<Trip> trips() { return tripRepository.findAll(); }
-    List<Sensor> sensors() { return sensorRepository.findAll(); }
-    List<Alert> alerts() { return alertRepository.findAll(); }
-    List<Incident> incidents() { return incidentRepository.findAll(); }
-    long usersCount() { return userRepository.findAll().size(); }
-    long supervisorsCount() { return supervisorRepository.findAll().size(); }
-    long lockedSupervisorsCount() {
-        return supervisorRepository.findAll().stream()
-                .filter(s -> s.getAccessStatus() != null && "locked".equals(s.getAccessStatus().toSerialized()))
+    // ── Métodos de colección base — todos filtrados por tenant ────────────────
+
+    List<Driver> drivers() {
+        var id = securityContext.currentCompanyId();
+        return id != null ? driverRepository.findAllByCompanyId(id) : List.of();
+    }
+
+    List<Vehicle> vehicles() {
+        var id = securityContext.currentCompanyId();
+        return id != null ? vehicleRepository.findAllByCompanyId(id) : List.of();
+    }
+
+    List<Trip> trips() {
+        var id = securityContext.currentCompanyId();
+        return id != null ? tripRepository.findAllByCompanyId(id) : List.of();
+    }
+
+    List<Alert> alerts() {
+        var id = securityContext.currentCompanyId();
+        return id != null ? alertRepository.findAllByCompanyId(id) : List.of();
+    }
+
+    List<Incident> incidents() {
+        var id = securityContext.currentCompanyId();
+        return id != null ? incidentRepository.findAllByCompanyId(id) : List.of();
+    }
+
+    /**
+     * Sensores no tienen companyId en su tabla. Se filtran indirectamente:
+     * solo se exponen los sensores montados en vehículos que pertenecen al tenant.
+     */
+    List<Sensor> sensors() {
+        Set<Long> tenantVehicleIds = vehicles().stream()
+                .map(Vehicle::getId)
+                .collect(Collectors.toSet());
+        return sensorRepository.findAll().stream()
+                .filter(s -> s.getVehicleId() != null && tenantVehicleIds.contains(s.getVehicleId()))
+                .toList();
+    }
+
+    /**
+     * SensorReadings se filtran indirectamente via los IDs de sensores del tenant.
+     */
+    long heartRateReadingCount() {
+        Set<Long> tenantSensorIds = sensors().stream()
+                .map(Sensor::getId)
+                .collect(Collectors.toSet());
+        return sensorReadingRepository.findAll().stream()
+                .filter(r -> "heart_rate".equalsIgnoreCase(r.getReadingType())
+                        && tenantSensorIds.contains(r.getSensorId()))
                 .count();
     }
-    long heartRateReadingCount() {
-        return sensorReadingRepository.findAll().stream()
-                .filter(r -> "heart_rate".equalsIgnoreCase(r.getReadingType()))
+
+    long usersCount() {
+        var id = securityContext.currentCompanyId();
+        if (id == null) return 0;
+        return userRepository.findAll().stream()
+                .filter(u -> id.equals(u.getCompanyId()))
+                .count();
+    }
+
+    long supervisorsCount() {
+        var id = securityContext.currentCompanyId();
+        if (id == null) return 0;
+        // Supervisor no tiene companyId; se filtra via el User vinculado
+        Set<Long> tenantUserIds = userRepository.findAll().stream()
+                .filter(u -> id.equals(u.getCompanyId()))
+                .map(u -> u.getId())
+                .collect(Collectors.toSet());
+        return supervisorRepository.findAll().stream()
+                .filter(s -> tenantUserIds.contains(s.getUserId()))
+                .count();
+    }
+
+    long lockedSupervisorsCount() {
+        var id = securityContext.currentCompanyId();
+        if (id == null) return 0;
+        Set<Long> tenantUserIds = userRepository.findAll().stream()
+                .filter(u -> id.equals(u.getCompanyId()))
+                .map(u -> u.getId())
+                .collect(Collectors.toSet());
+        return supervisorRepository.findAll().stream()
+                .filter(s -> tenantUserIds.contains(s.getUserId()))
+                .filter(s -> s.getAccessStatus() != null && "locked".equals(s.getAccessStatus().toSerialized()))
                 .count();
     }
 
     List<PerformanceMetric> metrics() {
-        return performanceMetricRepository.findAll().stream().map(this::toMetric).toList();
+        var id = securityContext.currentCompanyId();
+        if (id == null) return List.of();
+        // PerformanceMetric no tiene companyId; se filtra por driverIds del tenant
+        Set<Long> tenantDriverIds = drivers().stream().map(Driver::getId).collect(Collectors.toSet());
+        return performanceMetricRepository.findAll().stream()
+                .filter(e -> tenantDriverIds.contains(e.getDriverId()))
+                .map(this::toMetric)
+                .toList();
     }
+
+    // ── Proyecciones de mapas ────────────────────────────────────────────────
 
     Map<Long, Driver> driversById() {
         return drivers().stream().collect(Collectors.toMap(Driver::getId, Function.identity(), (a, b) -> a));
@@ -105,6 +187,8 @@ class AnalyticsProjectionSupport {
         return alerts().stream().collect(Collectors.toMap(Alert::getId, Function.identity(), (a, b) -> a));
     }
 
+    // ── Helpers de lookup ───────────────────────────────────────────────────
+
     Optional<Vehicle> vehicleForMetric(PerformanceMetric metric) {
         return vehicles().stream().filter(v -> v.getId().equals(metric.getVehicleId())).findFirst();
     }
@@ -118,22 +202,20 @@ class AnalyticsProjectionSupport {
     }
 
     Optional<Vehicle> vehicleForAlert(Alert alert) {
-        var tripsById = tripsById();
-        var vehiclesById = vehiclesById();
-        var trip = tripsById.get(alert.getTripId());
-        return trip == null ? Optional.empty() : Optional.ofNullable(vehiclesById.get(trip.getVehicleId()));
+        var trip = tripsById().get(alert.getTripId());
+        return trip == null ? Optional.empty() : Optional.ofNullable(vehiclesById().get(trip.getVehicleId()));
     }
 
     Optional<Driver> driverForAlert(Alert alert) {
-        var tripsById = tripsById();
-        var driversById = driversById();
-        var trip = tripsById.get(alert.getTripId());
-        return trip == null ? Optional.empty() : Optional.ofNullable(driversById.get(trip.getDriverId()));
+        var trip = tripsById().get(alert.getTripId());
+        return trip == null ? Optional.empty() : Optional.ofNullable(driversById().get(trip.getDriverId()));
     }
 
     long activeVehiclesCount() {
         return vehicles().stream().filter(v -> v.getStatus() == VehicleStatus.OPERATIONAL).count();
     }
+
+    // ── Helpers de formato ──────────────────────────────────────────────────
 
     String alertCode(Alert alert) {
         return alert.getCode() != null ? alert.getCode() : "AL - " + String.format("%03d", alert.getId());
@@ -199,6 +281,8 @@ class AnalyticsProjectionSupport {
     Comparator<Alert> newestAlertsFirst() {
         return Comparator.comparing((Alert a) -> parse(a.getOccurredAt()).orElse(LocalDateTime.MIN)).reversed();
     }
+
+    // ── Helpers privados ─────────────────────────────────────────────────────
 
     private Optional<LocalDateTime> parse(String timestamp) {
         try {
