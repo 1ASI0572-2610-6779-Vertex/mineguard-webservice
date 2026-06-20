@@ -11,6 +11,7 @@ public final class TripPersistenceAssembler {
         if (e == null) return null;
         var t = new Trip(e.getDriverId(), e.getVehicleId(), e.getStartTime(), e.getEndTime(), e.getStatus());
         t.setId(e.getId());
+        t.setCompanyId(e.getCompanyId());
         return t;
     }
 
@@ -22,6 +23,7 @@ public final class TripPersistenceAssembler {
         e.setStartTime(t.getStartTime());
         e.setEndTime(t.getEndTime());
         e.setStatus(t.getStatus());
+        e.setCompanyId(t.getCompanyId());
         return e;
     }
 }

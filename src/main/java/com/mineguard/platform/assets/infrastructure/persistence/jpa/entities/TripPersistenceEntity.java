@@ -24,4 +24,6 @@ public class TripPersistenceEntity extends AuditableAbstractPersistenceEntity {
     @Enumerated(EnumType.STRING)
     @Column(length = 20, nullable = false)
     private TripStatus status;
+    @Column(name = "company_id")
+    private Long companyId;
 }

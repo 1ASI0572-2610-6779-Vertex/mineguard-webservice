@@ -4,6 +4,7 @@ import com.mineguard.platform.assets.application.queryservices.DriverQueryServic
 import com.mineguard.platform.assets.domain.model.aggregates.Driver;
 import com.mineguard.platform.assets.domain.model.queries.GetAllDriversQuery;
 import com.mineguard.platform.assets.domain.model.queries.GetDriverByIdQuery;
+import com.mineguard.platform.assets.domain.model.queries.GetDriverByUserIdQuery;
 import com.mineguard.platform.assets.domain.repositories.DriverRepository;
 import com.mineguard.platform.shared.infrastructure.security.SecurityContextFacade;
 import org.springframework.stereotype.Service;
@@ -24,13 +25,19 @@ public class DriverQueryServiceImpl implements DriverQueryService {
     @Override
     public List<Driver> handle(GetAllDriversQuery query) {
         var companyId = securityContext.currentCompanyId();
-        return companyId != null
-                ? driverRepository.findAllByCompanyId(companyId)
-                : driverRepository.findAll();
+        if (companyId == null) return List.of();
+        return driverRepository.findAllByCompanyId(companyId);
     }
 
     @Override
     public Optional<Driver> handle(GetDriverByIdQuery query) {
-        return driverRepository.findById(query.id());
+        var companyId = securityContext.currentCompanyId();
+        return driverRepository.findById(query.id())
+                .filter(d -> companyId != null && companyId.equals(d.getCompanyId()));
+    }
+
+    @Override
+    public Optional<Driver> handle(GetDriverByUserIdQuery query) {
+        return driverRepository.findByUserId(query.userId());
     }
 }

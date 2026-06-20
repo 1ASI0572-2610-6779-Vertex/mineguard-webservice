@@ -15,6 +15,7 @@ public class Trip extends AbstractDomainAggregateRoot<Trip> {
     @Setter private String startTime;
     @Setter private String endTime;
     @Setter private TripStatus status;
+    @Setter private Long companyId;
 
     public Trip() {
     }

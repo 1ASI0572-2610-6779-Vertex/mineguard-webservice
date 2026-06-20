@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository;
 public interface DriverPersistenceRepository extends JpaRepository<DriverPersistenceEntity, Long> {
     long countByShiftStatus(ShiftStatus status);
     java.util.List<DriverPersistenceEntity> findAllByCompanyId(Long companyId);
+    java.util.Optional<DriverPersistenceEntity> findByUserId(Long userId);
 }

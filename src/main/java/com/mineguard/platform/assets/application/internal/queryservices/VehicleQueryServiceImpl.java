@@ -24,13 +24,14 @@ public class VehicleQueryServiceImpl implements VehicleQueryService {
     @Override
     public List<Vehicle> handle(GetAllVehiclesQuery query) {
         var companyId = securityContext.currentCompanyId();
-        return companyId != null
-                ? vehicleRepository.findAllByCompanyId(companyId)
-                : vehicleRepository.findAll();
+        if (companyId == null) return List.of();
+        return vehicleRepository.findAllByCompanyId(companyId);
     }
 
     @Override
     public Optional<Vehicle> handle(GetVehicleByIdQuery query) {
-        return vehicleRepository.findById(query.vehicleId());
+        var companyId = securityContext.currentCompanyId();
+        return vehicleRepository.findById(query.vehicleId())
+                .filter(v -> companyId != null && companyId.equals(v.getCompanyId()));
     }
 }
