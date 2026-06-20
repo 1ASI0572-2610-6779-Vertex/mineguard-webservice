@@ -4,9 +4,11 @@ import com.mineguard.platform.iam.domain.model.commands.CreateSupervisorCommand;
 import com.mineguard.platform.iam.interfaces.rest.resources.CreateSupervisorResource;
 
 public final class CreateSupervisorCommandFromResourceAssembler {
-    private CreateSupervisorCommandFromResourceAssembler() {}
+    private CreateSupervisorCommandFromResourceAssembler() {
+    }
 
     public static CreateSupervisorCommand toCommandFromResource(CreateSupervisorResource resource) {
-        return new CreateSupervisorCommand(resource.fullName(), resource.corporateId(), resource.email(), resource.userId());
+        return new CreateSupervisorCommand(resource.username(), resource.password(), resource.email(),
+                resource.fullName(), resource.idCompany(), resource.corporateId());
     }
 }

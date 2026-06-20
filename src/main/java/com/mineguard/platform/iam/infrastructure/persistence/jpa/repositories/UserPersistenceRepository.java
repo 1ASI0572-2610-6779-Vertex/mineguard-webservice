@@ -9,5 +9,7 @@ import java.util.Optional;
 @Repository
 public interface UserPersistenceRepository extends JpaRepository<UserPersistenceEntity, Long> {
     Optional<UserPersistenceEntity> findByUsername(String username);
+    Optional<UserPersistenceEntity> findByEmail(String email);
     boolean existsByUsername(String username);
+    long countByUsernameStartingWith(String prefix);
 }

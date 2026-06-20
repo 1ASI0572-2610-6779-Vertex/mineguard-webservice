@@ -12,12 +12,14 @@ public final class LiveMapVehiclePersistenceAssembler {
         var v = new LiveMapVehicle(e.getCode(), e.getVehicleType(), e.getLatitude(), e.getLongitude(),
                 e.getStatus(), e.getDriverName());
         v.setId(e.getId());
+        v.setVehicleId(e.getVehicleId());
         return v;
     }
 
     public static LiveMapVehiclePersistenceEntity toEntity(LiveMapVehicle v) {
         var e = new LiveMapVehiclePersistenceEntity();
         e.setId(v.getId());
+        e.setVehicleId(v.getVehicleId());
         e.setCode(v.getCode());
         e.setVehicleType(v.getVehicleType());
         e.setLatitude(v.getLatitude());

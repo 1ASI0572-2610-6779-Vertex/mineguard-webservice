@@ -3,6 +3,7 @@ package com.mineguard.platform.iam.infrastructure.authorization.sfs.configuratio
 import com.mineguard.platform.iam.infrastructure.tokens.jwt.BearerTokenService;
 import com.mineguard.platform.iam.infrastructure.tokens.jwt.pipeline.BearerAuthorizationRequestFilter;
 import com.mineguard.platform.iam.infrastructure.tokens.jwt.pipeline.UnauthorizedRequestHandler;
+import com.mineguard.platform.iot.infrastructure.security.EdgeApiKeyFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,13 +29,16 @@ public class WebSecurityConfiguration {
     private final UserDetailsService userDetailsService;
     private final BearerTokenService tokenService;
     private final UnauthorizedRequestHandler unauthorizedRequestHandler;
+    private final EdgeApiKeyFilter edgeApiKeyFilter;
 
     public WebSecurityConfiguration(UserDetailsService userDetailsService,
                                     BearerTokenService tokenService,
-                                    UnauthorizedRequestHandler unauthorizedRequestHandler) {
+                                    UnauthorizedRequestHandler unauthorizedRequestHandler,
+                                    EdgeApiKeyFilter edgeApiKeyFilter) {
         this.userDetailsService = userDetailsService;
         this.tokenService = tokenService;
         this.unauthorizedRequestHandler = unauthorizedRequestHandler;
+        this.edgeApiKeyFilter = edgeApiKeyFilter;
     }
 
     @Bean
@@ -75,7 +79,11 @@ public class WebSecurityConfiguration {
                                 "/authentication/**",
                                 "/auth/**",
                                 "/api/v1/authentication/**",
+                                "/api/v1/subscriptions/company-registration",
+                                "/api/v1/authentication/forgot-password",
                                 "/api/v1/health-monitoring/**",
+                                // IoT routes are authenticated by EdgeApiKeyFilter, not by JWT
+                                "/api/v1/iot/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
@@ -84,7 +92,7 @@ public class WebSecurityConfiguration {
                         ).permitAll()
                         // Read-only view-model endpoints polled by the frontends (dev-friendly, no token required)
                         .requestMatchers(org.springframework.http.HttpMethod.GET,
-                                "/supervisors/**", "/administrators/**", "/vehiclesInventory/**", "/driversDirectory/**",
+                                "/supervisors/**", "/vehiclesInventory/**", "/driversDirectory/**", "/drivers/**", "/catalogSummary/**",
                                 "/vehicles/**", "/operationalAlerts/**", "/auditLog/**", "/cardiacReadings/**",
                                 "/fleetSummary/**", "/liveMapVehicles/**", "/alerts/**", "/performance/**",
                                 "/dashboardSummary/**", "/dashboardTrend/**", "/dashboardRiskDrivers/**",
@@ -95,6 +103,8 @@ public class WebSecurityConfiguration {
                         .anyRequest().authenticated());
         http.headers(headers -> headers.frameOptions(frame -> frame.disable())); // for H2 console
         http.addFilterBefore(authorizationRequestFilter(), UsernamePasswordAuthenticationFilter.class);
+        // EdgeApiKeyFilter runs before the JWT filter so IoT requests are short-circuited early
+        http.addFilterBefore(edgeApiKeyFilter, BearerAuthorizationRequestFilter.class);
         return http.build();
     }
 }

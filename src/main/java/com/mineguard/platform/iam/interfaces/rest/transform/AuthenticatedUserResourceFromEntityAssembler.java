@@ -8,6 +8,7 @@ public final class AuthenticatedUserResourceFromEntityAssembler {
     }
 
     public static AuthenticatedUserResource toResourceFromEntity(User user, String token) {
-        return new AuthenticatedUserResource(user.getId(), user.getUsername(), token, RoleLabel.web(user));
+        return new AuthenticatedUserResource(user.getId(), user.getUsername(), token,
+                RoleLabel.web(user), user.isRequiresPasswordChange());
     }
 }

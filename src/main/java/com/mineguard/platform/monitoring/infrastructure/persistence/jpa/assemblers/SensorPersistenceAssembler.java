@@ -11,6 +11,7 @@ public final class SensorPersistenceAssembler {
         if (e == null) return null;
         var s = new Sensor(e.getVehicleId(), e.getSensorType(), e.getStatus());
         s.setId(e.getId());
+        s.setDeviceId(e.getDeviceId());
         return s;
     }
 
@@ -20,6 +21,7 @@ public final class SensorPersistenceAssembler {
         e.setVehicleId(s.getVehicleId());
         e.setSensorType(s.getSensorType());
         e.setStatus(s.getStatus());
+        e.setDeviceId(s.getDeviceId());
         return e;
     }
 }

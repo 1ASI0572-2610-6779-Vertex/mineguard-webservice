@@ -1,22 +1,8 @@
-﻿package com.mineguard.platform.subscriptions.infrastructure.persistence.jpa.assemblers;
-import com.mineguard.platform.subscriptions.domain.model.entities.Plan;
-import com.mineguard.platform.subscriptions.domain.model.valueobjects.Money;
+package com.mineguard.platform.subscriptions.infrastructure.persistence.jpa.assemblers;
+import com.mineguard.platform.subscriptions.domain.model.aggregates.Plan;
 import com.mineguard.platform.subscriptions.infrastructure.persistence.jpa.entities.PlanPersistenceEntity;
 public final class PlanPersistenceAssembler {
-    private PlanPersistenceAssembler() {}
-    public static Plan toDomain(PlanPersistenceEntity entity) {
-        if (entity == null) return null;
-        var plan = new Plan(entity.getName(), new Money(entity.getPriceAmount(), entity.getPriceCurrency()), entity.getBillingCycle());
-        plan.setId(entity.getId());
-        return plan;
-    }
-    public static PlanPersistenceEntity toEntity(Plan plan) {
-        var entity = new PlanPersistenceEntity();
-        entity.setId(plan.getId());
-        entity.setName(plan.getName());
-        entity.setPriceAmount(plan.getPrice() != null ? plan.getPrice().amount() : null);
-        entity.setPriceCurrency(plan.getPrice() != null ? plan.getPrice().currency() : null);
-        entity.setBillingCycle(plan.getBillingCycle());
-        return entity;
-    }
+    private PlanPersistenceAssembler(){}
+    public static Plan toDomain(PlanPersistenceEntity e){ if(e==null)return null; var p=new Plan(e.getName(),e.getPrice(),e.getDurationDays()); p.setId(e.getId()); return p; }
+    public static PlanPersistenceEntity toEntity(Plan p){ var e=new PlanPersistenceEntity(); e.setId(p.getId()); e.setName(p.getName()); e.setPrice(p.getPrice()); e.setDurationDays(p.getDurationDays()); return e; }
 }

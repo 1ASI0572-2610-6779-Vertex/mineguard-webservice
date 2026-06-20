@@ -353,6 +353,18 @@
       "id_vehicle": 7,
       "sensor_type": "Autonomous Route Beacon",
       "status": "active"
+    },
+    {
+      "id": 14,
+      "id_vehicle": 4,
+      "sensor_type": "Heart Rate",
+      "status": "active"
+    },
+    {
+      "id": 15,
+      "id_vehicle": 5,
+      "sensor_type": "Heart Rate",
+      "status": "active"
     }
   ],
   "sensorReadings": [
@@ -481,6 +493,20 @@
       "reading_type": "speed",
       "value": 33,
       "timestamp": "2026-05-13T10:04:00"
+    },
+    {
+      "id": 19,
+      "id_sensor": 14,
+      "reading_type": "heart_rate",
+      "value": 96,
+      "timestamp": "2026-05-13T10:15:00"
+    },
+    {
+      "id": 20,
+      "id_sensor": 15,
+      "reading_type": "heart_rate",
+      "value": 82,
+      "timestamp": "2026-05-13T10:16:00"
     }
   ],
   "alerts": [
@@ -865,284 +891,6 @@
       "description": "Repeated proximity event suggests critical route congestion during afternoon operation."
     }
   ],
-  "dashboardSummary": [
-    {
-      "id": 1,
-      "activeSensors": 11,
-      "totalSensors": 13,
-      "criticalAlerts": 5,
-      "fatigueEvents": 12,
-      "activeVehicles": 5,
-      "totalDrivers": 5
-    }
-  ],
-  "dashboardTrend": [
-    {
-      "id": 1,
-      "hour": "06:00",
-      "alerts": 1,
-      "incidents": 1
-    },
-    {
-      "id": 2,
-      "hour": "08:00",
-      "alerts": 2,
-      "incidents": 1
-    },
-    {
-      "id": 3,
-      "hour": "10:00",
-      "alerts": 2,
-      "incidents": 2
-    },
-    {
-      "id": 4,
-      "hour": "12:00",
-      "alerts": 1,
-      "incidents": 0
-    },
-    {
-      "id": 5,
-      "hour": "14:00",
-      "alerts": 1,
-      "incidents": 0
-    },
-    {
-      "id": 6,
-      "hour": "16:00",
-      "alerts": 1,
-      "incidents": 1
-    },
-    {
-      "id": 7,
-      "hour": "18:00",
-      "alerts": 0,
-      "incidents": 0
-    }
-  ],
-  "dashboardRiskDrivers": [
-    {
-      "id": 1,
-      "driverId": 2,
-      "driverName": "Luis Mendoza",
-      "vehicleType": "Light Vehicle",
-      "riskScore": 91.7
-    },
-    {
-      "id": 2,
-      "driverId": 1,
-      "driverName": "Carlos Ruiz",
-      "vehicleType": "Light Vehicle",
-      "riskScore": 88.6
-    },
-    {
-      "id": 3,
-      "driverId": 3,
-      "driverName": "Ana Gomez",
-      "vehicleType": "Maintenance Truck",
-      "riskScore": 63.2
-    }
-  ],
-  "dashboardRecentAlerts": [
-    {
-      "id": 9,
-      "alertCode": "AL - 009",
-      "severity": "high",
-      "category": "Proximity Collision",
-      "driverName": "Carlos Ruiz",
-      "vehicleCode": "V-04",
-      "vehicleType": "Light Vehicle",
-      "route": "Ruta 4",
-      "time": "16:10",
-      "status": "active"
-    },
-    {
-      "id": 8,
-      "alertCode": "AL - 008",
-      "severity": "medium",
-      "category": "Restricted Zone Entry",
-      "driverName": "Ana Gomez",
-      "vehicleCode": "V-12",
-      "vehicleType": "Maintenance Truck",
-      "route": "Ruta 3",
-      "time": "14:30",
-      "status": "active"
-    },
-    {
-      "id": 5,
-      "alertCode": "AL - 005",
-      "severity": "high",
-      "category": "High Heart Rate",
-      "driverName": "Luis Mendoza",
-      "vehicleCode": "V-07",
-      "vehicleType": "Light Vehicle",
-      "route": "Ruta 2",
-      "time": "11:15",
-      "status": "active"
-    }
-  ],
-  "analyticsFatigueBars": [
-    {
-      "id": 1,
-      "driverId": 2,
-      "driverName": "Luis Mendoza",
-      "fatigueEvents": 6,
-      "width": 100
-    },
-    {
-      "id": 2,
-      "driverId": 1,
-      "driverName": "Carlos Ruiz",
-      "fatigueEvents": 5,
-      "width": 83
-    },
-    {
-      "id": 3,
-      "driverId": 3,
-      "driverName": "Ana Gomez",
-      "fatigueEvents": 1,
-      "width": 17
-    },
-    {
-      "id": 4,
-      "driverId": 4,
-      "driverName": "Pedro Sanchez",
-      "fatigueEvents": 0,
-      "width": 0
-    },
-    {
-      "id": 5,
-      "driverId": 5,
-      "driverName": "Emilio Vargas",
-      "fatigueEvents": 0,
-      "width": 0
-    }
-  ],
-  "analyticsIncidentDistribution": [
-    {
-      "id": 1,
-      "label": "Proximidad / Colisión",
-      "count": 2,
-      "percent": 20,
-      "className": "color-1"
-    },
-    {
-      "id": 2,
-      "label": "Incursión en Zona Restringida",
-      "count": 2,
-      "percent": 20,
-      "className": "color-2"
-    },
-    {
-      "id": 3,
-      "label": "Fatiga",
-      "count": 2,
-      "percent": 20,
-      "className": "color-3"
-    },
-    {
-      "id": 4,
-      "label": "Ritmo Cardíaco Elevado",
-      "count": 1,
-      "percent": 10,
-      "className": "color-4"
-    }
-  ],
-  "analyticsHistoryRows": [
-    {
-      "id": 1,
-      "date": "13 may 2026",
-      "time": "06:42:00",
-      "criticality": "high",
-      "criticalityLabel": "Crítica",
-      "incidentType": "Proximidad / Colisión",
-      "involved": "V-04",
-      "location": "Ruta 4"
-    },
-    {
-      "id": 2,
-      "date": "13 may 2026",
-      "time": "10:07:00",
-      "criticality": "high",
-      "criticalityLabel": "Crítica",
-      "incidentType": "Incursión en Zona Restringida",
-      "involved": "V-04",
-      "location": "Ruta 4"
-    },
-    {
-      "id": 3,
-      "date": "13 may 2026",
-      "time": "11:16:00",
-      "criticality": "high",
-      "criticalityLabel": "Crítica",
-      "incidentType": "Ritmo Cardíaco Elevado",
-      "involved": "V-07",
-      "location": "Ruta 2"
-    },
-    {
-      "id": 4,
-      "date": "12 may 2026",
-      "time": "08:05:10",
-      "criticality": "low",
-      "criticalityLabel": "Sistema",
-      "incidentType": "Pérdida de Conexión",
-      "involved": "V-14",
-      "location": "Ruta 6"
-    },
-    {
-      "id": 5,
-      "date": "13 may 2026",
-      "time": "16:12:00",
-      "criticality": "high",
-      "criticalityLabel": "Crítica",
-      "incidentType": "Proximidad / Colisión",
-      "involved": "V-04",
-      "location": "Ruta 4"
-    }
-  ],
-  "analyticsInsights": [
-    {
-      "id": 1,
-      "title": "Patrón de Fatiga Detectado",
-      "description": "Se registraron 12 eventos de fatiga acumulados en las métricas de rendimiento. Se recomienda revisar los turnos con mayor riesgo.",
-      "className": "fatigue-insight"
-    },
-    {
-      "id": 2,
-      "title": "Zona Crítica Identificada",
-      "description": "El riesgo más frecuente corresponde a Proximidad / Colisión e Incursión en Zona Restringida. Se recomienda reforzar el monitoreo en rutas autónomas.",
-      "className": "zone-insight"
-    }
-  ],
-  "adminSummary": [
-    {
-      "id": 1,
-      "activeSensors": 142,
-      "totalSensors": 142,
-      "lockedAccounts": 2,
-      "registeredAssets": 346
-    }
-  ],
-  "adminNotices": {
-    "notices": [
-      {
-        "id": 1,
-        "level": "warning",
-        "i18nKey": "admin.notices.passwordChangePending",
-        "i18nParams": {
-          "count": 2
-        },
-        "actionKey": "admin.notices.action.resendInvite"
-      },
-      {
-        "id": 2,
-        "level": "info",
-        "i18nKey": "admin.notices.consolidatedReportReady",
-        "i18nParams": {},
-        "actionKey": "admin.notices.action.downloadPdf"
-      }
-    ]
-  },
   "supervisors": [
     {
       "id": 1,
@@ -1186,17 +934,6 @@
       "id": 6
     }
   ],
-  "catalogSummary": [
-    {
-      "id": 1,
-      "driversTotal": 259,
-      "driversInactive": 8,
-      "vehiclesTotal": 87,
-      "vehiclesMaintenance": 4,
-      "supervisorsTotal": 24,
-      "supervisorsLocked": 1
-    }
-  ],
   "auditLog": {
     "entries": [
       {
@@ -1237,35 +974,6 @@
       }
     ]
   },
-  "vehiclesInventory": [
-    {
-      "id": 1,
-      "code": "V-04",
-      "model": "Volquete-04",
-      "category": "Maquinaria Pesada",
-      "status": "maintenance",
-      "assignedDriverName": null,
-      "shiftLabel": null
-    },
-    {
-      "id": 2,
-      "code": "V-07",
-      "model": "Volquete-07",
-      "category": "Maquinaria Pesada",
-      "status": "maintenance",
-      "assignedDriverName": null,
-      "shiftLabel": null
-    },
-    {
-      "id": 3,
-      "code": "V-12",
-      "model": "Camión Cisterna",
-      "category": "Servicios Operativos",
-      "status": "operational",
-      "assignedDriverName": "Carlos Ruiz",
-      "shiftLabel": "TURNO TARDE"
-    }
-  ],
   "driversDirectory": [
     {
       "id": 1,
@@ -1293,64 +1001,6 @@
       "specialty": "Livianos",
       "shiftStatus": "off_shift",
       "lastAccess": "Hoy, 14:02 PM"
-    }
-  ],
-  "operationalAlerts": [
-    {
-      "id": 1,
-      "code": "AL-8942",
-      "type": "collision",
-      "priority": "critical",
-      "status": "resolved",
-      "occurredAt": "2026-05-10T14:32:05",
-      "title": "Cruce Camioneta - Ruta A",
-      "description": "Colisi�n entre Camioneta-54 y Cami�n de carga pesada",
-      "vehicleClassKey": "monitoring.alerts.vehicleClass.light",
-      "vehicleCode": "Camioneta - 54",
-      "driverName": "Luis Perez",
-      "resolutionNotes": "Verified, contact made, drivers notified"
-    },
-    {
-      "id": 2,
-      "code": "AL-8941",
-      "type": "fatigue",
-      "priority": "warning",
-      "status": "active",
-      "occurredAt": "2026-05-10T14:17:00",
-      "title": "Cruce Camioneta - Ruta A",
-      "description": "Fatiga detectada por cámara en Camioneta-12",
-      "vehicleClassKey": "monitoring.alerts.vehicleClass.light",
-      "vehicleCode": "Camioneta - 12",
-      "driverName": "Carlos Ruiz",
-      "resolutionNotes": ""
-    },
-    {
-      "id": 3,
-      "code": "AL-8940",
-      "type": "imminent_collision",
-      "priority": "critical",
-      "status": "active",
-      "occurredAt": "2026-05-10T14:12:00",
-      "title": "Cruce Camioneta - Ruta A",
-      "description": "Proximidad crítica detectada entre Camioneta-54 y Camión de carga pesada",
-      "vehicleClassKey": "monitoring.alerts.vehicleClass.light",
-      "vehicleCode": "Camioneta - 54",
-      "driverName": "Luis Perez",
-      "resolutionNotes": ""
-    },
-    {
-      "id": 4,
-      "code": "AL-8939",
-      "type": "imminent_collision",
-      "priority": "critical",
-      "status": "active",
-      "occurredAt": "2026-05-10T14:02:00",
-      "title": "Cruce Camioneta - Ruta A",
-      "description": "Segunda alerta de proximidad en el mismo tramo durante operación de tarde",
-      "vehicleClassKey": "monitoring.alerts.vehicleClass.heavy",
-      "vehicleCode": "Volquete - 04",
-      "driverName": "Juan Pérez",
-      "resolutionNotes": ""
     }
   ],
   "liveMapVehicles": [
@@ -1426,31 +1076,7 @@
       "status": "operational",
       "driverName": "Ana Gomez"
     }
-  ],
-  "fleetSummary": [
-    {
-      "id": 1,
-      "operational": 10,
-      "maintenance": 6,
-      "alert": 6,
-      "total": 22,
-      "operationalPercent": 61
-    }
-  ],
-  "cardiacReadings": [
-    {
-      "id": 1,
-      "driverName": "Emilio",
-      "vehicleCode": "V-05",
-      "heartRate": 110,
-      "status": "warning"
-    },
-    {
-      "id": 2,
-      "driverName": "Carlos",
-      "vehicleCode": "V-04",
-      "heartRate": 148,
-      "status": "critical"
-    }
   ]
+
+
 }

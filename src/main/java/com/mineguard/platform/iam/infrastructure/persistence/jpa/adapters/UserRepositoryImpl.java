@@ -29,6 +29,11 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public Optional<User> findByEmail(String email) {
+        return repository.findByEmail(email).map(UserPersistenceAssembler::toDomain);
+    }
+
+    @Override
     public Optional<User> findById(Long id) {
         return repository.findById(id).map(UserPersistenceAssembler::toDomain);
     }
@@ -41,5 +46,10 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public List<User> findAll() {
         return repository.findAll().stream().map(UserPersistenceAssembler::toDomain).toList();
+    }
+
+    @Override
+    public long countByUsernamePrefix(String prefix) {
+        return repository.countByUsernameStartingWith(prefix);
     }
 }

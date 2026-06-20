@@ -17,9 +17,11 @@ public final class UserPersistenceAssembler {
         user.setId(entity.getId());
         user.setEmail(entity.getEmail());
         user.setFullName(entity.getFullName());
+        user.setCompanyId(entity.getCompanyId());
         user.setRoles(entity.getRoles().stream()
                 .map(RolePersistenceAssembler::toDomain)
                 .collect(Collectors.toSet()));
+        user.setRequiresPasswordChange(entity.isRequiresPasswordChange());
         return user;
     }
 
@@ -30,6 +32,8 @@ public final class UserPersistenceAssembler {
         entity.setPassword(user.getPassword());
         entity.setEmail(user.getEmail());
         entity.setFullName(user.getFullName());
+        entity.setCompanyId(user.getCompanyId());
+        entity.setRequiresPasswordChange(user.isRequiresPasswordChange());
         entity.setRoles(user.getRoles().stream()
                 .map(RolePersistenceAssembler::toEntity)
                 .collect(Collectors.toSet()));

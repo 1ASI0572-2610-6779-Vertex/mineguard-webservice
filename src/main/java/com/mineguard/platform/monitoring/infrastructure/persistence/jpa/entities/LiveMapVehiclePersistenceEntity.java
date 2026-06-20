@@ -12,6 +12,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class LiveMapVehiclePersistenceEntity extends AuditableAbstractPersistenceEntity {
+    @Column(name = "vehicle_id")
+    private Long vehicleId;
     @Column(length = 40)
     private String code;
     @Column(name = "vehicle_type", length = 60)
