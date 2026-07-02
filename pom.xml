@@ -108,11 +108,7 @@
             <artifactId>postgresql</artifactId>
         </dependency>
 
-        <!-- Transactional email support (Brevo SMTP via JavaMailSender) -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-mail</artifactId>
-        </dependency>
+        <!-- Transactional email is sent via Brevo's HTTP API (RestClient from spring-web); no SMTP starter needed. -->
     </dependencies>
 
     <build>
