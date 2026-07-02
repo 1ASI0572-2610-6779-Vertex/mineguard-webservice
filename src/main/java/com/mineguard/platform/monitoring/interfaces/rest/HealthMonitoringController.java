@@ -5,6 +5,7 @@ import com.mineguard.platform.monitoring.domain.model.commands.IngestHeartRateCo
 import com.mineguard.platform.monitoring.interfaces.rest.resources.HealthDataRecordResource;
 import com.mineguard.platform.monitoring.interfaces.rest.transform.HealthRecordResourceFromEntityAssembler;
 import com.mineguard.platform.shared.interfaces.rest.transform.ResponseEntityAssembler;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
  *             This endpoint will be removed in the next major release.
  */
 @Deprecated(since = "2.0", forRemoval = true)
+@Hidden // Excluded from Swagger/OpenAPI. Superseded by POST /api/v1/iot/telemetry.
 @RestController
 @RequestMapping(value = "/api/v1/health-monitoring", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Health Monitoring (Edge) [DEPRECATED]",

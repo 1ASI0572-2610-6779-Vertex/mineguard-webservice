@@ -1,25 +1,34 @@
 package com.mineguard.platform.shared.infrastructure.mail;
 
-import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class EmailServiceImpl implements IEmailService {
 
-    private final JavaMailSender mailSender;
+    /** Brevo transactional email HTTP API. Uses HTTPS (443), which Render allows — unlike the SMTP ports. */
+    private static final String BREVO_API_URL = "https://api.brevo.com/v3";
+
+    private final RestClient restClient = RestClient.builder().baseUrl(BREVO_API_URL).build();
+
+    @Value("${brevo.api.key:}")
+    private String brevoApiKey;
 
     @Value("${spring.mail.from:noreply@mineguard.com}")
     private String fromAddress;
+
+    @Value("${spring.mail.from-name:MineGuard Platform}")
+    private String fromName;
 
     private static final Map<String, String> ROLE_LABELS = Map.of(
             "ROLE_ADMINISTRATOR", "Administrador",
@@ -54,15 +63,29 @@ public class EmailServiceImpl implements IEmailService {
     // ─────────────────────────────────────────────────────────────────────────
 
     private void send(String toEmail, String subject, String htmlBody) {
+        if (brevoApiKey == null || brevoApiKey.isBlank()) {
+            log.error("[EmailService] BREVO_API_KEY no esta configurada; no se envio el correo a {}", toEmail);
+            return;
+        }
+        var payload = Map.of(
+                "sender", Map.of("name", fromName, "email", fromAddress),
+                "to", List.of(Map.of("email", toEmail)),
+                "subject", subject,
+                "htmlContent", htmlBody);
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(fromAddress, "MineGuard Platform");
-            helper.setTo(toEmail);
-            helper.setSubject(subject);
-            helper.setText(htmlBody, true);
-            mailSender.send(message);
-            log.info("[EmailService] Correo enviado a {}", toEmail);
+            restClient.post()
+                    .uri("/smtp/email")
+                    .header("api-key", brevoApiKey)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .body(payload)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, (request, response) -> {
+                        var body = new String(response.getBody().readAllBytes(), StandardCharsets.UTF_8);
+                        throw new IllegalStateException("Brevo respondio " + response.getStatusCode() + ": " + body);
+                    })
+                    .toBodilessEntity();
+            log.info("[EmailService] Correo enviado a {} via Brevo API", toEmail);
         } catch (Exception ex) {
             log.error("[EmailService] Error al enviar correo a {}: {}", toEmail, ex.getMessage(), ex);
         }

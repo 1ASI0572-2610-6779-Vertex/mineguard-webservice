@@ -16,6 +16,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.firewall.HttpFirewall;
+import org.springframework.security.web.firewall.StrictHttpFirewall;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -66,6 +68,21 @@ public class WebSecurityConfiguration {
         var source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    /**
+     * Tolerates URLs containing a double slash (e.g. {@code //api/v1/subscriptions}) that some
+     * frontend clients produce when concatenating a base URL that ends with '/'. Without this,
+     * StrictHttpFirewall rejects the request with HTTP 400 <b>before</b> the CorsFilter runs, so the
+     * response carries no Access-Control-Allow-Origin header and the browser reports a CORS error on
+     * the preflight. Note: the cleaner fix is to remove the double slash on the client side.
+     */
+    @Bean
+    public HttpFirewall allowDoubleSlashHttpFirewall() {
+        var firewall = new StrictHttpFirewall();
+        firewall.setAllowUrlEncodedSlash(false);
+        firewall.setAllowUrlEncodedDoubleSlash(true);
+        return firewall;
     }
 
     @Bean
