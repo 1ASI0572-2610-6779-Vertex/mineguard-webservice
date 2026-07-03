@@ -56,8 +56,14 @@ import java.util.List;
  * Seeds the platform database from the bundled MineGuard dataset
  * ({@code seed/db.json}) so both frontends and the edge bridge have data to work
  * with on startup. Runs after IAM role seeding (Order 2) and is idempotent.
+ *
+ * <p>DISABLED: the demo dataset from {@code seed/db.json} clashed with real data
+ * created through the app, so this seeder no longer runs. Only role seeding
+ * ({@link com.mineguard.platform.iam.application.internal.eventhandlers.ApplicationReadyEventHandler})
+ * remains active, which is structurally required for auth. To re-enable demo
+ * data in a local environment, uncomment the {@code @Component} annotation below.
  */
-@Component
+// @Component
 public class DataSeeder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DataSeeder.class);
 
