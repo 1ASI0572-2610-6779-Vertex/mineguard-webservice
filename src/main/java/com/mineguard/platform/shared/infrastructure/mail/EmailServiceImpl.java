@@ -24,7 +24,7 @@ public class EmailServiceImpl implements IEmailService {
     @Value("${brevo.api.key:}")
     private String brevoApiKey;
 
-    @Value("${spring.mail.from:noreply@mineguard.com}")
+    @Value("${spring.mail.from:kalo18031234@gmail.com}")
     private String fromAddress;
 
     @Value("${spring.mail.from-name:MineGuard Platform}")
