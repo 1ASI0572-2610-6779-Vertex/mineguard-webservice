@@ -12,6 +12,6 @@ public final class UpdateSupervisorCommandFromResourceAssembler {
         AccessStatus status = resource.accessStatus() == null ? null
                 : AccessStatus.fromSerialized(resource.accessStatus());
         return new UpdateSupervisorCommand(id, resource.username(), resource.password(), resource.fullName(),
-                resource.corporateId(), resource.email(), resource.idCompany(), status);
+                resource.corporateId(), resource.email(), status);
     }
 }

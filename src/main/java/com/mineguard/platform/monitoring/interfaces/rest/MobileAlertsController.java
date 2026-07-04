@@ -2,12 +2,11 @@ package com.mineguard.platform.monitoring.interfaces.rest;
 
 import com.mineguard.platform.monitoring.application.commandservices.AlertCommandService;
 import com.mineguard.platform.monitoring.application.queryservices.AlertQueryService;
-import com.mineguard.platform.monitoring.domain.model.commands.MarkAlertActionCommand;
+import com.mineguard.platform.monitoring.domain.model.aggregates.Alert;
 import com.mineguard.platform.monitoring.domain.model.queries.GetAlertByIdQuery;
 import com.mineguard.platform.monitoring.domain.model.queries.GetAllAlertsQuery;
 import com.mineguard.platform.monitoring.domain.model.valueobjects.AlertStatus;
 import com.mineguard.platform.monitoring.domain.repositories.AuditLogEntryRepository;
-import com.mineguard.platform.monitoring.interfaces.rest.resources.AlertActionResource;
 import com.mineguard.platform.monitoring.interfaces.rest.resources.AlertHistoryResource;
 import com.mineguard.platform.monitoring.interfaces.rest.resources.AlertResource;
 import com.mineguard.platform.monitoring.interfaces.rest.resources.MobileAlertResource;
@@ -21,11 +20,13 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -66,7 +67,10 @@ public class MobileAlertsController {
                     "Pass `view=operational` to receive the full enriched payload used by the web panel " +
                     "(formerly served by the /operationalAlerts endpoint, now consolidated here). " +
                     "Alerts are enriched at query time with driver name, vehicle code, and incident description " +
-                    "by cross-referencing the Trip that originated each alert.")
+                    "by cross-referencing the Trip that originated each alert. " +
+                    "Pass `sort=-occurredAt` to rank alerts newest-first and `limit=N` to cap the result size " +
+                    "— e.g. `GET /api/v1/alerts?sort=-occurredAt&limit=10` for the dashboard's 'Recent Alerts' " +
+                    "feed (replaces the former GET /dashboard/recent-alerts widget endpoint).")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Alert list returned successfully"),
             @ApiResponse(responseCode = "403", description = "Access denied — JWT missing or invalid")
@@ -74,8 +78,20 @@ public class MobileAlertsController {
     public ResponseEntity<List<?>> getAll(
             @Parameter(description = "Optional view variant. `operational` returns the full web payload " +
                     "(all statuses, enriched fields); omitting it returns only non-resolved alerts (mobile payload).")
-            @RequestParam(required = false) String view) {
+            @RequestParam(required = false) String view,
+            @Parameter(description = "Optional sort key. Accepted value: `-occurredAt` (newest first)")
+            @RequestParam(required = false) String sort,
+            @Parameter(description = "Optional maximum number of results to return")
+            @RequestParam(required = false) Integer limit) {
         var all = alertQueryService.handle(new GetAllAlertsQuery());
+        if ("-occurredAt".equals(sort)) {
+            all = all.stream()
+                    .sorted(Comparator.comparing(Alert::getOccurredAt).reversed())
+                    .toList();
+        }
+        if (limit != null && limit >= 0 && limit < all.size()) {
+            all = all.subList(0, limit);
+        }
         if ("operational".equals(view)) {
             var resources = all.stream()
                     .map(AlertResourceFromEntityAssembler::toResourceFromEntity)
@@ -133,6 +149,9 @@ public class MobileAlertsController {
     public ResponseEntity<List<AlertHistoryResource>> history(
             @Parameter(description = "Unique numeric identifier of the alert", required = true)
             @PathVariable("alertId") Long alertId) {
+        if (alertQueryService.handle(new GetAlertByIdQuery(alertId)).isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
         var token = "\"alertId\":" + alertId;
         var history = auditLogEntryRepository.findAll().stream()
                 .filter(e -> e.getDescriptionParamsJson() != null && e.getDescriptionParamsJson().contains(token))
@@ -143,47 +162,20 @@ public class MobileAlertsController {
     }
 
     // -------------------------------------------------------------------------
-    // Actions (replaces /action + /mark-reviewed)
+    // Partial update (replaces PUT /operationalAlerts/{id} and the former
+    // RPC-style POST /alerts/{id}/actions — both are now a single partial
+    // update on the alert resource itself)
     // -------------------------------------------------------------------------
 
-    @PostMapping("/{alertId}/actions")
-    @Operation(
-            summary = "Register an action on an alert",
-            description = "Creates a new action record for this alert, changing its status or adding a review note. " +
-                    "The `action` field in the request body determines what happens: " +
-                    "`markReviewed` marks the alert as reviewed by the authenticated supervisor; " +
-                    "other action codes (e.g. `escalate`, `resolve`) are forwarded to the AlertCommandService " +
-                    "for processing. " +
-                    "This endpoint consolidates the former POST /alerts/{id}/action and " +
-                    "POST /alerts/{id}/mark-reviewed into a single noun-based sub-resource. " +
-                    "Sending an empty body defaults the action to `markReviewed`.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Action registered and updated alert returned"),
-            @ApiResponse(responseCode = "400", description = "Invalid action type or business rule violation"),
-            @ApiResponse(responseCode = "404", description = "Alert not found or does not belong to this tenant"),
-            @ApiResponse(responseCode = "403", description = "Access denied — JWT missing or invalid")
-    })
-    public ResponseEntity<?> createAction(
-            @Parameter(description = "Unique numeric identifier of the alert", required = true)
-            @PathVariable("alertId") Long alertId,
-            @RequestBody(required = false) AlertActionResource resource) {
-        var action = resource != null && resource.action() != null ? resource.action() : "markReviewed";
-        var result = alertCommandService.handle(new MarkAlertActionCommand(alertId, action));
-        return ResponseEntityAssembler.toResponseEntityFromResult(
-                result, AlertResourceFromEntityAssembler::toResourceFromEntity, HttpStatus.OK);
-    }
-
-    // -------------------------------------------------------------------------
-    // Full update (formerly PUT /operationalAlerts/{id})
-    // -------------------------------------------------------------------------
-
-    @PutMapping("/{alertId}")
+    @PatchMapping("/{alertId}")
     @Operation(
             summary = "Update alert",
-            description = "Replaces the editable fields of an existing alert (status, classification, notes). " +
-                    "Used by the supervisor web panel to manually reclassify or update an alert. " +
-                    "The alert must belong to the authenticated company. " +
-                    "Formerly served by PUT /operationalAlerts/{id}, now consolidated here.")
+            description = "Partially updates an existing alert: any subset of the editable fields " +
+                    "(status, classification, notes) may be supplied — omitted fields are left unchanged. " +
+                    "This is also how mobile/web clients act on an alert: sending `{\"status\": \"resolved\"}` " +
+                    "or `{\"status\": \"false_alarm\"}` replaces the former RPC-style " +
+                    "POST /alerts/{id}/actions endpoint. " +
+                    "The alert must belong to the authenticated company.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Alert updated and returned"),
             @ApiResponse(responseCode = "400", description = "Invalid request body or business rule violation"),
@@ -193,7 +185,7 @@ public class MobileAlertsController {
     public ResponseEntity<?> update(
             @Parameter(description = "Unique numeric identifier of the alert to update", required = true)
             @PathVariable("alertId") Long alertId,
-            @RequestBody UpdateAlertResource resource) {
+            @Valid @RequestBody UpdateAlertResource resource) {
         var command = UpdateAlertCommandFromResourceAssembler.toCommandFromResource(alertId, resource);
         var result = alertCommandService.handle(command);
         return ResponseEntityAssembler.toResponseEntityFromResult(

@@ -17,9 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Consolidates the former /performance/{workerId} (MobilePerformanceController)
- * and /performanceMetrics (PerformanceMetricsController) under the canonical
- * hierarchical path /api/v1/drivers/{driverId}/performance.
+ * Consolidates the former /performance/{workerId} (mobile) and /performanceMetrics
+ * (admin table) under the canonical hierarchical path /api/v1/drivers/{driverId}.
  */
 @RestController
 @RequestMapping(value = "/api/v1/drivers/{driverId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -37,26 +36,25 @@ public class MobilePerformanceController {
         this.performanceMetricQueryService = performanceMetricQueryService;
     }
 
-    @GetMapping("/performance")
+    @GetMapping("/scores")
     @Operation(
-            summary = "Get driver performance summary (mobile)",
+            summary = "Get driver performance scores (mobile)",
             description = "Returns the aggregated performance summary for the specified driver, " +
                     "used by the mobile app's operator profile screen. " +
-                    "The summary is computed from all PerformanceMetric records belonging to this driver: " +
-                    "safety score (0-100, derived from average risk score), fatigue alert count, " +
-                    "average trip duration, and total hours driven. " +
-                    "Previously served at GET /performance/{workerId}, where workerId was the driver's login ID " +
-                    "(format CDT-{companyId}-{seq}). Now consolidated under the driver's numeric ID for consistency. " +
-                    "Tenant isolation: only metrics whose driverId belongs to the authenticated company are included.")
+                    "The summary is computed only from PerformanceMetric records whose driverId matches " +
+                    "the {driverId} path variable: safety score (0-100, derived from average risk score), " +
+                    "fatigue alert count, average trip duration, and total hours driven. " +
+                    "Previously served at GET /performance/{workerId}, then GET /drivers/{driverId}/performance " +
+                    "(both of which incorrectly aggregated every driver's metrics instead of just this one), " +
+                    "then GET /drivers/{driverId}/kpis. Renamed to /scores.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Performance summary returned successfully"),
-            @ApiResponse(responseCode = "404", description = "Driver not found or does not belong to this tenant"),
             @ApiResponse(responseCode = "403", description = "Access denied — JWT missing or invalid")
     })
     public ResponseEntity<PerformanceStatsResource> getPerformanceSummary(
             @Parameter(description = "Unique numeric identifier of the driver", required = true)
             @PathVariable("driverId") Long driverId) {
-        List<PerformanceMetric> metrics = performanceMetricQueryService.findAll();
+        List<PerformanceMetric> metrics = metricsForDriver(driverId);
         int fatigueAlerts = metrics.stream().mapToInt(PerformanceMetric::getFatigueEvents).sum();
         double avgRisk = metrics.stream().mapToDouble(PerformanceMetric::getRiskScore).average().orElse(20.0);
         int safetyScore = (int) Math.max(0, Math.min(100, Math.round(100 - avgRisk)));
@@ -64,27 +62,32 @@ public class MobilePerformanceController {
         return ResponseEntity.ok(stats);
     }
 
-    @GetMapping("/performance-metrics")
+    @GetMapping("/metrics")
     @Operation(
             summary = "List raw performance metric records for a driver",
-            description = "Returns the full list of PerformanceMetric records for the specified driver, " +
-                    "used by the admin analytics table to show per-trip performance breakdowns. " +
+            description = "Returns the PerformanceMetric records whose driverId matches the {driverId} path " +
+                    "variable, used by the admin analytics table to show per-trip performance breakdowns. " +
                     "Each record contains: tripId, vehicleId, fatigueEvents, alertsCount, " +
                     "averageHeartRate, riskScore, and calculatedAt timestamp. " +
-                    "Previously served at GET /performanceMetrics (flat, all-drivers list). " +
-                    "Now nested under the driver to enforce the correct ownership hierarchy and " +
-                    "allow filtering by driver without query parameters.")
+                    "Previously served at GET /performanceMetrics (flat, all-drivers list) and later " +
+                    "GET /drivers/{driverId}/performance-metrics (which ignored {driverId} and returned every " +
+                    "driver's records). Renamed to /metrics for a shorter, plural-noun collection name.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Performance metrics returned (may be empty for new drivers)"),
-            @ApiResponse(responseCode = "404", description = "Driver not found or does not belong to this tenant"),
             @ApiResponse(responseCode = "403", description = "Access denied — JWT missing or invalid")
     })
     public ResponseEntity<List<PerformanceMetricResource>> getPerformanceMetrics(
             @Parameter(description = "Unique numeric identifier of the driver", required = true)
             @PathVariable("driverId") Long driverId) {
-        var items = performanceMetricQueryService.findAll().stream()
+        var items = metricsForDriver(driverId).stream()
                 .map(PerformanceMetricResourceFromEntityAssembler::toResourceFromEntity)
                 .toList();
         return ResponseEntity.ok(items);
+    }
+
+    private List<PerformanceMetric> metricsForDriver(Long driverId) {
+        return performanceMetricQueryService.findAll().stream()
+                .filter(m -> driverId.equals(m.getDriverId()))
+                .toList();
     }
 }

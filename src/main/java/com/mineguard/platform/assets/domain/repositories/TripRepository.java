@@ -10,5 +10,7 @@ public interface TripRepository {
     Trip save(Trip trip);
     List<Trip> findAll();
     List<Trip> findAllByCompanyId(Long companyId);
+    Optional<Trip> findById(Long id);
     Optional<Trip> findFirstByVehicleIdAndStatus(Long vehicleId, TripStatus status);
+    Optional<Trip> findFirstByDriverIdAndStatus(Long driverId, TripStatus status);
 }

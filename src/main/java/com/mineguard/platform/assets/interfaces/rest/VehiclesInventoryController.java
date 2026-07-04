@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -62,24 +63,25 @@ public class VehiclesInventoryController {
     @Operation(
             summary = "Create a vehicle",
             description = "Registers a new vehicle in the company fleet. The vehicle is immediately available " +
-                    "for driver check-in via POST /api/v1/vehicles/{vehicleId}/trips.")
+                    "for driver check-in via POST /api/v1/vehicles/{vehicleId}/driving-sessions.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Vehicle created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request body or business rule violation"),
             @ApiResponse(responseCode = "403", description = "Access denied — JWT missing or invalid")
     })
-    public ResponseEntity<?> create(@RequestBody CreateVehicleResource resource) {
+    public ResponseEntity<?> create(@Valid @RequestBody CreateVehicleResource resource) {
         var command = CreateVehicleCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = vehicleCommandService.handle(command);
         return ResponseEntityAssembler.toResponseEntityFromResult(
                 result, VehicleResourceFromEntityAssembler::toResourceFromEntity, HttpStatus.CREATED);
     }
 
-    @PutMapping("/{vehicleId}")
+    @PatchMapping("/{vehicleId}")
     @Operation(
             summary = "Update a vehicle",
-            description = "Replaces the full record of an existing vehicle. The vehicle must belong to the " +
-                    "authenticated company. PUT is used because the administration form always submits all fields.")
+            description = "Partially updates an existing vehicle: any subset of the editable fields may be " +
+                    "supplied — fields omitted (or absent from the JSON body) are left unchanged. " +
+                    "The vehicle must belong to the authenticated company.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Vehicle updated successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request body or business rule violation"),
@@ -89,7 +91,7 @@ public class VehiclesInventoryController {
     public ResponseEntity<?> update(
             @Parameter(description = "Unique numeric identifier of the vehicle to update", required = true)
             @PathVariable("vehicleId") Long vehicleId,
-            @RequestBody UpdateVehicleResource resource) {
+            @Valid @RequestBody UpdateVehicleResource resource) {
         var command = UpdateVehicleCommandFromResourceAssembler.toCommandFromResource(vehicleId, resource);
         var result = vehicleCommandService.handle(command);
         return ResponseEntityAssembler.toResponseEntityFromResult(

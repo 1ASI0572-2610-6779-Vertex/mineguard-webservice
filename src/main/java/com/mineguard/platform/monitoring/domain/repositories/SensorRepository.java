@@ -9,5 +9,6 @@ public interface SensorRepository {
     Sensor save(Sensor sensor);
     List<Sensor> findAll();
     long count();
-    Optional<Sensor> findByDeviceId(String deviceId);
+    /** Tenant-scoped lookup — prevents a device_id collision between two companies from crossing tenants. */
+    Optional<Sensor> findByDeviceIdAndCompanyId(String deviceId, Long companyId);
 }

@@ -35,7 +35,17 @@ public class TripRepositoryImpl implements TripRepository {
     }
 
     @Override
+    public Optional<Trip> findById(Long id) {
+        return repository.findById(id).map(TripPersistenceAssembler::toDomain);
+    }
+
+    @Override
     public Optional<Trip> findFirstByVehicleIdAndStatus(Long vehicleId, TripStatus status) {
         return repository.findFirstByVehicleIdAndStatus(vehicleId, status).map(TripPersistenceAssembler::toDomain);
+    }
+
+    @Override
+    public Optional<Trip> findFirstByDriverIdAndStatus(Long driverId, TripStatus status) {
+        return repository.findFirstByDriverIdAndStatus(driverId, status).map(TripPersistenceAssembler::toDomain);
     }
 }

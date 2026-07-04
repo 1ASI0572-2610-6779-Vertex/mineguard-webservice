@@ -7,12 +7,14 @@ import com.mineguard.platform.iam.interfaces.rest.resources.*;
 import com.mineguard.platform.iam.interfaces.rest.transform.CreateSupervisorCommandFromResourceAssembler;
 import com.mineguard.platform.iam.interfaces.rest.transform.SupervisorResourceFromEntityAssembler;
 import com.mineguard.platform.iam.interfaces.rest.transform.UpdateSupervisorCommandFromResourceAssembler;
+import com.mineguard.platform.shared.infrastructure.security.SecurityContextFacade;
 import com.mineguard.platform.shared.interfaces.rest.transform.ResponseEntityAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,11 +32,14 @@ public class SupervisorsController {
 
     private final SupervisorCommandService supervisorCommandService;
     private final SupervisorQueryService supervisorQueryService;
+    private final SecurityContextFacade securityContext;
 
     public SupervisorsController(SupervisorCommandService supervisorCommandService,
-                                  SupervisorQueryService supervisorQueryService) {
+                                  SupervisorQueryService supervisorQueryService,
+                                  SecurityContextFacade securityContext) {
         this.supervisorCommandService = supervisorCommandService;
         this.supervisorQueryService = supervisorQueryService;
+        this.securityContext = securityContext;
     }
 
     @GetMapping
@@ -60,7 +65,9 @@ public class SupervisorsController {
             summary = "Create a supervisor",
             description = "Registers a new supervisor account under the authenticated company. " +
                     "Internally creates a User with role SUPERVISOR and sends a welcome email " +
-                    "with the generated temporary password via Brevo SMTP. " +
+                    "with the generated temporary password via Brevo SMTP. The request body has no " +
+                    "`username`/`password` fields — the schema does not accept credentials on creation, " +
+                    "and any unrecognized field is rejected with 400. " +
                     "The supervisor must change their password on first login " +
                     "(the `requiresPasswordChange` flag is set to true). " +
                     "Returns 201 with the created supervisor resource on success.")
@@ -69,18 +76,19 @@ public class SupervisorsController {
             @ApiResponse(responseCode = "400", description = "Validation error or email already in use"),
             @ApiResponse(responseCode = "403", description = "Access denied — JWT missing or ADMIN role required")
     })
-    public ResponseEntity<?> create(@RequestBody CreateSupervisorResource resource) {
-        var command = CreateSupervisorCommandFromResourceAssembler.toCommandFromResource(resource);
+    public ResponseEntity<?> create(@Valid @RequestBody CreateSupervisorResource resource) {
+        var command = CreateSupervisorCommandFromResourceAssembler.toCommandFromResource(
+                resource, securityContext.currentCompanyId());
         var result = supervisorCommandService.handle(command);
         return ResponseEntityAssembler.toResponseEntityFromResult(
                 result, SupervisorResourceFromEntityAssembler::toResourceFromEntity, HttpStatus.CREATED);
     }
 
-    @PutMapping("/{supervisorId}")
+    @PatchMapping("/{supervisorId}")
     @Operation(
             summary = "Update a supervisor",
-            description = "Replaces the profile of an existing supervisor (name, email, phone, status). " +
-                    "PUT is used because the administration form always submits all fields together. " +
+            description = "Partially updates the profile of an existing supervisor: any subset of the editable " +
+                    "fields may be supplied — fields omitted (or absent from the JSON body) are left unchanged. " +
                     "The supervisor must belong to the authenticated company — " +
                     "ownership is enforced at the command service layer. " +
                     "Password changes are NOT handled by this endpoint — use PATCH /api/v1/users/me/password.")
@@ -93,7 +101,7 @@ public class SupervisorsController {
     public ResponseEntity<?> update(
             @Parameter(description = "Unique numeric identifier of the supervisor to update", required = true)
             @PathVariable("supervisorId") Long supervisorId,
-            @RequestBody UpdateSupervisorResource resource) {
+            @Valid @RequestBody UpdateSupervisorResource resource) {
         var command = UpdateSupervisorCommandFromResourceAssembler.toCommandFromResource(supervisorId, resource);
         var result = supervisorCommandService.handle(command);
         return ResponseEntityAssembler.toResponseEntityFromResult(

@@ -5,7 +5,7 @@ package com.mineguard.platform.analytics.interfaces.rest;
  *
  * <p>Mapping reference:
  * <ul>
- *   <li>{@code GET /performanceMetrics} → {@code GET /api/v1/drivers/{driverId}/performance-metrics}</li>
+ *   <li>{@code GET /performanceMetrics} → {@code GET /api/v1/drivers/{driverId}/metrics}</li>
  * </ul>
  *
  * Delete this file once all frontend clients have migrated to the new route.

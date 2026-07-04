@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface SensorPersistenceRepository extends JpaRepository<SensorPersistenceEntity, Long> {
-    Optional<SensorPersistenceEntity> findByDeviceId(String deviceId);
+    Optional<SensorPersistenceEntity> findByDeviceIdAndCompanyId(String deviceId, Long companyId);
 }

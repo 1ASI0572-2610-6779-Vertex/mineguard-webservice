@@ -8,7 +8,12 @@ public final class DriverResourceFromEntityAssembler {
     }
 
     public static DriverResource toResourceFromEntity(Driver d) {
+        return toResourceFromEntity(d, null);
+    }
+
+    /** @param riskScore populated only when the caller has it on hand (e.g. {@code ?sort=-riskScore}); null otherwise. */
+    public static DriverResource toResourceFromEntity(Driver d, Double riskScore) {
         return new DriverResource(d.getId(), d.getFullName(), d.getOperatorId(), d.getLicense(),
-                d.getSpecialty(), d.getShiftStatus().toSerialized(), d.getLastAccess());
+                d.getSpecialty(), d.getShiftStatus().toSerialized(), d.getLastAccess(), riskScore);
     }
 }

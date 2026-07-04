@@ -7,8 +7,9 @@ public final class CreateSupervisorCommandFromResourceAssembler {
     private CreateSupervisorCommandFromResourceAssembler() {
     }
 
-    public static CreateSupervisorCommand toCommandFromResource(CreateSupervisorResource resource) {
-        return new CreateSupervisorCommand(resource.username(), resource.password(), resource.email(),
-                resource.fullName(), resource.idCompany(), resource.corporateId());
+    /** The company is always the caller's own tenant — never taken from the request body. */
+    public static CreateSupervisorCommand toCommandFromResource(CreateSupervisorResource resource, Long companyId) {
+        return new CreateSupervisorCommand(resource.email(),
+                resource.fullName(), companyId, resource.corporateId());
     }
 }

@@ -4,8 +4,6 @@ import com.mineguard.platform.analytics.application.queryservices.AdminSummaryQu
 import com.mineguard.platform.analytics.domain.model.aggregates.AdminSummary;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 public class AdminSummaryQueryServiceImpl implements AdminSummaryQueryService {
     private final AnalyticsProjectionSupport support;
@@ -15,7 +13,7 @@ public class AdminSummaryQueryServiceImpl implements AdminSummaryQueryService {
     }
 
     @Override
-    public List<AdminSummary> findAll() {
+    public AdminSummary find() {
         var sensors = support.sensors();
         var summary = new AdminSummary(
                 (int) sensors.stream().filter(s -> "active".equalsIgnoreCase(s.getStatus())).count(),
@@ -23,6 +21,6 @@ public class AdminSummaryQueryServiceImpl implements AdminSummaryQueryService {
                 (int) support.lockedSupervisorsCount(),
                 support.vehicles().size() + support.drivers().size());
         summary.setId(1L);
-        return List.of(summary);
+        return summary;
     }
 }

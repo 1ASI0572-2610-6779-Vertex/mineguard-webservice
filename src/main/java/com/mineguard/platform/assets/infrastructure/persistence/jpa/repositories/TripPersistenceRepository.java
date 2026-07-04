@@ -12,4 +12,5 @@ import java.util.Optional;
 public interface TripPersistenceRepository extends JpaRepository<TripPersistenceEntity, Long> {
     List<TripPersistenceEntity> findAllByCompanyId(Long companyId);
     Optional<TripPersistenceEntity> findFirstByVehicleIdAndStatus(Long vehicleId, TripStatus status);
+    Optional<TripPersistenceEntity> findFirstByDriverIdAndStatus(Long driverId, TripStatus status);
 }

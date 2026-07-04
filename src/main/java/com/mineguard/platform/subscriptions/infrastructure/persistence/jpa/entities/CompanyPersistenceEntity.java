@@ -4,4 +4,5 @@ import jakarta.persistence.*; import lombok.Getter; import lombok.NoArgsConstruc
 @Entity @Table(name="companies") @Getter @Setter @NoArgsConstructor
 public class CompanyPersistenceEntity extends AuditableAbstractPersistenceEntity {
     @Column(length=120, nullable=false) private String name;
+    @Column(name = "edge_api_key", length = 64, unique = true) private String edgeApiKey;
 }

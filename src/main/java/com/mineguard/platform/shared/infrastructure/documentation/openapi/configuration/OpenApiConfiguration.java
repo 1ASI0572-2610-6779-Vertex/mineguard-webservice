@@ -54,16 +54,30 @@ public class OpenApiConfiguration {
                 new Server().url("http://localhost:8080").description("Local Development Environment")
         ));
 
-        final String securitySchemeName = "bearerAuth";
-        openApi.addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
+        final String bearerSchemeName = "bearerAuth";
+        final String apiKeySchemeName = "ApiKey";
+        openApi.addSecurityItem(new SecurityRequirement().addList(bearerSchemeName))
                 .components(new Components()
-                        .addSecuritySchemes(securitySchemeName,
+                        .addSecuritySchemes(bearerSchemeName,
                                 new SecurityScheme()
-                                        .name(securitySchemeName)
+                                        .name(bearerSchemeName)
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
                                         .bearerFormat("JWT")
-                                        .description("JWT Bearer token for API authentication")));
+                                        .description("JWT Bearer token for API authentication"))
+                        // M2M scheme for the IoT telemetry endpoint — a per-company API key, not a JWT.
+                        // Operations that declare @SecurityRequirement(name = "ApiKey") (see IotTelemetryController)
+                        // override the global bearerAuth requirement above, so Swagger UI shows this padlock
+                        // instead of asking for a JWT on that endpoint.
+                        .addSecuritySchemes(apiKeySchemeName,
+                                new SecurityScheme()
+                                        .name("X-API-Key")
+                                        .type(SecurityScheme.Type.APIKEY)
+                                        .in(SecurityScheme.In.HEADER)
+                                        .description("Per-company machine-to-machine API key, generated at "
+                                                + "company registration time (POST /api/v1/companies). "
+                                                + "Used exclusively by the IoT telemetry ingestion endpoint — "
+                                                + "never a JWT.")));
 
         return openApi;
     }

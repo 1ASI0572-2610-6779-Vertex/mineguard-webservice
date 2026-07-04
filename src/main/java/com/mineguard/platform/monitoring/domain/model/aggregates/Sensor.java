@@ -13,6 +13,8 @@ public class Sensor extends AbstractDomainAggregateRoot<Sensor> {
     @Setter private String status;
     /** Edge device identifier sent in the X-Device-Id / device_id field of IoT payloads. */
     @Setter private String deviceId;
+    /** Owning tenant. Scopes device_id lookups so two companies can never collide on the same device_id. */
+    @Setter private Long companyId;
 
     public Sensor() {
     }
