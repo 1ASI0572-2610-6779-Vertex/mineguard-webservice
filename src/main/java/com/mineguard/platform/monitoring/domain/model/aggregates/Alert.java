@@ -60,25 +60,19 @@ public class Alert extends AbstractDomainAggregateRoot<Alert> {
         this.code = null;
     }
 
-    /** Updates classification fields (supervisor alert management). */
-    public Alert classify(AlertStatus status, String resolutionNotes) {
-        if (status != null) this.status = status;
-        if (resolutionNotes != null) this.resolutionNotes = resolutionNotes;
-        return this;
-    }
-
+    /** Partial update: every parameter is optional — {@code null} leaves the current value unchanged. */
     public Alert updateAll(AlertType type, AlertPriority priority, AlertStatus status, String title,
                            String description, String vehicleClassKey, String vehicleCode,
                            String driverName, String resolutionNotes) {
         if (type != null) this.type = type;
         if (priority != null) this.priority = priority;
         if (status != null) this.status = status;
-        this.title = title;
-        this.description = description;
-        this.vehicleClassKey = vehicleClassKey;
-        this.vehicleCode = vehicleCode;
-        this.driverName = driverName;
-        this.resolutionNotes = resolutionNotes;
+        if (title != null) this.title = title;
+        if (description != null) this.description = description;
+        if (vehicleClassKey != null) this.vehicleClassKey = vehicleClassKey;
+        if (vehicleCode != null) this.vehicleCode = vehicleCode;
+        if (driverName != null) this.driverName = driverName;
+        if (resolutionNotes != null) this.resolutionNotes = resolutionNotes;
         return this;
     }
 }

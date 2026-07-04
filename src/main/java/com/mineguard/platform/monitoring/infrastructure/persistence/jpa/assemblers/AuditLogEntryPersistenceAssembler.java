@@ -10,7 +10,7 @@ public final class AuditLogEntryPersistenceAssembler {
     public static AuditLogEntry toDomain(AuditLogEntryPersistenceEntity e) {
         if (e == null) return null;
         var a = new AuditLogEntry(e.getCategory(), e.getOccurredAt(), e.getTitleKey(), e.getDescriptionKey(),
-                e.getDescriptionParamsJson(), e.getActorKey());
+                e.getDescriptionParamsJson(), e.getActorKey(), e.getCompanyId());
         a.setId(e.getId());
         return a;
     }
@@ -24,6 +24,7 @@ public final class AuditLogEntryPersistenceAssembler {
         e.setDescriptionKey(a.getDescriptionKey());
         e.setDescriptionParamsJson(a.getDescriptionParamsJson());
         e.setActorKey(a.getActorKey());
+        e.setCompanyId(a.getCompanyId());
         return e;
     }
 }

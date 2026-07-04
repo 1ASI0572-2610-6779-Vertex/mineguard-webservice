@@ -39,6 +39,10 @@ public class VehicleCommandServiceImpl implements VehicleCommandService {
             return Result.failure(ApplicationError.notFound("Vehicle", String.valueOf(command.id())));
         }
         var vehicle = existing.get();
+        var callerCompanyId = securityContext.currentCompanyId();
+        if (callerCompanyId == null || !callerCompanyId.equals(vehicle.getCompanyId())) {
+            return Result.failure(ApplicationError.notFound("Vehicle", String.valueOf(command.id())));
+        }
         var previousStatus = vehicle.getStatus();
         vehicle.updateInformation(command.code(), command.model(), command.category(), command.status(),
                 command.assignedDriverName(), command.shiftLabel());

@@ -7,4 +7,5 @@ import java.util.List;
 public interface AuditLogEntryRepository {
     AuditLogEntry save(AuditLogEntry entry);
     List<AuditLogEntry> findAll();
+    List<AuditLogEntry> findAllByCompanyId(Long companyId);
 }

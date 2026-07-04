@@ -18,6 +18,7 @@ import com.mineguard.platform.shared.application.result.Result;
 import com.mineguard.platform.shared.domain.utils.PasswordGenerator;
 import com.mineguard.platform.shared.domain.utils.UsernameGenerator;
 import com.mineguard.platform.shared.infrastructure.mail.IEmailService;
+import com.mineguard.platform.shared.infrastructure.security.SecurityContextFacade;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,35 +31,38 @@ public class DriverCommandServiceImpl implements DriverCommandService {
     private final HashingService hashingService;
     private final AuditLogWriter auditLogWriter;
     private final IEmailService emailService;
+    private final SecurityContextFacade securityContext;
 
     public DriverCommandServiceImpl(DriverRepository driverRepository, UserRepository userRepository,
                                     RoleRepository roleRepository, HashingService hashingService,
-                                    AuditLogWriter auditLogWriter, IEmailService emailService) {
+                                    AuditLogWriter auditLogWriter, IEmailService emailService,
+                                    SecurityContextFacade securityContext) {
         this.driverRepository = driverRepository;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.hashingService = hashingService;
         this.auditLogWriter = auditLogWriter;
         this.emailService = emailService;
+        this.securityContext = securityContext;
     }
 
     @Override
     public Result<Driver, ApplicationError> handle(CreateDriverCommand command) {
-        var companyId = command.idCompany() != null ? command.idCompany() : 0L;
+        var companyId = command.companyId() != null ? command.companyId() : 0L;
         var generatedUsername = UsernameGenerator.forDriver(
                 companyId, userRepository.countByUsernamePrefix(UsernameGenerator.driverPrefix(companyId)));
         var role = roleRepository.findByName(Roles.ROLE_DRIVER)
                 .orElseGet(() -> roleRepository.save(new Role(Roles.ROLE_DRIVER)));
         var tempPassword = PasswordGenerator.generate();
         var user = userRepository.save(new User(generatedUsername, hashingService.encode(tempPassword),
-                command.email(), command.fullName(), command.idCompany(), List.of(role), true));
+                command.email(), command.fullName(), companyId, List.of(role), true));
         if (command.email() != null && !command.email().isBlank()) {
             emailService.sendCredentialsEmail(command.email(), "ROLE_DRIVER",
                     generatedUsername, command.fullName(), tempPassword);
         }
         var driver = new Driver(command.fullName(), operatorId(command.licenseNumber()), command.licenseNumber(),
                 command.workShift(), ShiftStatus.ON_SHIFT, null, user.getId());
-        driver.setCompanyId(command.idCompany());
+        driver.setCompanyId(companyId);
         driver = driverRepository.save(driver);
         auditLogWriter.record("administrative", "monitoring.audit.entries.driverCreated.title",
                 "monitoring.audit.entries.driverCreated.description",
@@ -72,6 +76,10 @@ public class DriverCommandServiceImpl implements DriverCommandService {
         var existing = driverRepository.findById(command.id());
         if (existing.isEmpty()) return Result.failure(ApplicationError.notFound("Driver", String.valueOf(command.id())));
         var driver = existing.get();
+        var callerCompanyId = securityContext.currentCompanyId();
+        if (callerCompanyId == null || !callerCompanyId.equals(driver.getCompanyId())) {
+            return Result.failure(ApplicationError.notFound("Driver", String.valueOf(command.id())));
+        }
         if (driver.getUserId() == null && command.username() != null && !command.username().isBlank()) {
             if (userRepository.existsByUsername(command.username())) {
                 return Result.failure(ApplicationError.conflict("User", "Username already exists"));
@@ -80,7 +88,7 @@ public class DriverCommandServiceImpl implements DriverCommandService {
                     .orElseGet(() -> roleRepository.save(new Role(Roles.ROLE_DRIVER)));
             var user = userRepository.save(new User(command.username(),
                     hashingService.encode(command.password() == null ? "123456" : command.password()),
-                    command.email(), command.fullName(), command.idCompany(), List.of(role)));
+                    command.email(), command.fullName(), driver.getCompanyId(), List.of(role)));
             driver.setUserId(user.getId());
         } else if (driver.getUserId() != null) {
             userRepository.findById(driver.getUserId()).ifPresent(user -> {
@@ -88,7 +96,6 @@ public class DriverCommandServiceImpl implements DriverCommandService {
                 if (command.password() != null && !command.password().isBlank()) user.setPassword(hashingService.encode(command.password()));
                 if (command.email() != null) user.setEmail(command.email());
                 if (command.fullName() != null) user.setFullName(command.fullName());
-                if (command.idCompany() != null) user.setCompanyId(command.idCompany());
                 userRepository.save(user);
             });
         }

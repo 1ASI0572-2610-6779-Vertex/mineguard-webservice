@@ -12,6 +12,8 @@ import com.mineguard.platform.iam.interfaces.rest.transform.AuthenticatedUserRes
 import com.mineguard.platform.iam.interfaces.rest.transform.SignInCommandFromResourceAssembler;
 import com.mineguard.platform.iam.interfaces.rest.transform.SignUpCommandFromResourceAssembler;
 import com.mineguard.platform.iam.interfaces.rest.transform.UserResourceFromEntityAssembler;
+import com.mineguard.platform.shared.application.result.ApplicationError;
+import com.mineguard.platform.shared.interfaces.rest.transform.ErrorResponseAssembler;
 import com.mineguard.platform.shared.interfaces.rest.transform.ResponseEntityAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -83,18 +85,25 @@ public class AuthenticationController {
     @PostMapping("/users")
     @Operation(
             summary = "Create a user (sign-up)",
-            description = "Registers a new MineGuard user. The role assigned depends on the `role` field in the request body: " +
-                    "SUPERVISOR creates a supervisor account linked to an existing company; " +
-                    "DRIVER accounts are created via POST /api/v1/drivers (not this endpoint). " +
+            description = "Registers a new MineGuard user. The role assigned depends on the `roles` field in the request body: " +
+                    "SUPERVISOR creates a supervisor account linked to an existing company. " +
+                    "DRIVER is rejected on this generic endpoint (400) — driver accounts must be created via " +
+                    "POST /api/v1/drivers, which additionally provisions the Driver domain aggregate (not just " +
+                    "the User/IAM identity) required for trip check-in and telemetry linkage. " +
                     "Returns `{ id, username }` — no JWT is issued on sign-up; " +
                     "the user must call POST /api/v1/sessions to authenticate after registration. " +
                     "No JWT is required to call this endpoint (it is public).")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "User created successfully"),
-            @ApiResponse(responseCode = "400", description = "Validation error or username already taken"),
+            @ApiResponse(responseCode = "400", description = "Validation error, username already taken, or roles included DRIVER"),
             @ApiResponse(responseCode = "409", description = "Email already registered")
     })
     public ResponseEntity<?> signUp(@RequestBody SignUpResource resource) {
+        if (resource.roles() != null && resource.roles().stream()
+                .anyMatch(role -> "DRIVER".equalsIgnoreCase(role) || "ROLE_DRIVER".equalsIgnoreCase(role))) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(ApplicationError.validationError(
+                    "roles", "Driver accounts cannot be created via POST /api/v1/users — use POST /api/v1/drivers instead"));
+        }
         var command = SignUpCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = userCommandService.handle(command);
         return ResponseEntityAssembler.toResponseEntityFromResult(
@@ -107,7 +116,7 @@ public class AuthenticationController {
     // Password resets — unauthenticated flow
     // =========================================================================
 
-    @PostMapping("/users/password-resets")
+    @PostMapping("/password-resets")
     @Operation(
             summary = "Request a password reset",
             description = "Creates a password-reset request for the given email address. " +
@@ -115,7 +124,8 @@ public class AuthenticationController {
                     "The response is always 200 OK regardless of whether the email exists — " +
                     "this prevents user enumeration attacks (the caller cannot distinguish 'email not found' " +
                     "from 'email found and email sent'). " +
-                    "No JWT is required (this endpoint is public — the user has lost access).")
+                    "No JWT is required (this endpoint is public — the user has lost access). " +
+                    "Formerly POST /api/v1/users/password-resets.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Reset initiated (response is identical whether the email exists or not)"),
             @ApiResponse(responseCode = "400", description = "Malformed email address")

@@ -107,6 +107,13 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml — Excel (.xlsx) export for
+             audit-log and driver-report downloads (?format=xls) -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.3.0</version>
+        </dependency>
 
         <!-- Transactional email is sent via Brevo's HTTP API (RestClient from spring-web); no SMTP starter needed. -->
     </dependencies>

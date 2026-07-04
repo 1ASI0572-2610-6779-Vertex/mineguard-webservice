@@ -17,20 +17,20 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * @deprecated Replaced by the unified IoT ingestion contract.
- *             Use {@code POST /api/v1/iot/telemetry} instead.
+ *             Use {@code POST /api/v1/telemetry} instead.
  *             This endpoint will be removed in the next major release.
  */
 @Deprecated(since = "2.0", forRemoval = true)
-@Hidden // Excluded from Swagger/OpenAPI. Superseded by POST /api/v1/iot/telemetry.
+@Hidden // Excluded from Swagger/OpenAPI. Superseded by POST /api/v1/telemetry.
 @RestController
 @RequestMapping(value = "/api/v1/health-monitoring", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Health Monitoring (Edge) [DEPRECATED]",
-        description = "**DEPRECATED** — Use `POST /api/v1/iot/telemetry` instead. " +
+        description = "**DEPRECATED** — Use `POST /api/v1/telemetry` instead. " +
                 "Smart-band IoT ingestion endpoint — cloud counterpart of the " +
                 "smart-band-edge-service. This path is intentionally kept separate from the user-facing API hierarchy: " +
                 "it is called by IoT devices (smart-bands) authenticated with an X-API-Key header, not by JWT users. " +
                 "Ingested SensorReadings of type `heart_rate` become the raw data source for " +
-                "GET /api/v1/trips/{tripId}/cardiac-readings.")
+                "GET /api/v1/driving-sessions/{sessionId}/cardiac-readings.")
 public class HealthMonitoringController {
 
     private final HeartRateIngestionService heartRateIngestionService;

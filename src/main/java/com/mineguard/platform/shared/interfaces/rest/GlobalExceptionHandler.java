@@ -4,6 +4,7 @@ import com.mineguard.platform.shared.application.result.ApplicationError;
 import com.mineguard.platform.shared.interfaces.rest.transform.ErrorResponseAssembler;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -42,6 +43,25 @@ public class GlobalExceptionHandler {
                 .orElse(resolveMessageOrDefault("validation.request.failed", "Request validation failed"));
 
         var applicationError = ApplicationError.validationError("request-body", errorDetails);
+        return ErrorResponseAssembler.toErrorResponseFromApplicationError(applicationError);
+    }
+
+    /**
+     * Handles malformed request bodies — including unrecognized JSON properties on DTOs annotated
+     * with {@code @JsonIgnoreProperties(ignoreUnknown = false)} (e.g. a client trying to smuggle
+     * {@code username}/{@code password} into a create-driver/create-supervisor payload). Without
+     * this handler the exception would fall through to {@link #handleGenericException} and
+     * incorrectly report 500 for what is actually a 400-level client error.
+     *
+     * @param ex the message-not-readable exception (bad JSON, unknown property, type mismatch, etc.)
+     * @return error response with BAD_REQUEST status
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<?> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+        var applicationError = ApplicationError.validationError(
+                resolveMessageOrDefault("validation.request.argument", "request-argument"),
+                resolveMessageOrDefault("validation.request.failed", "Request validation failed")
+        );
         return ErrorResponseAssembler.toErrorResponseFromApplicationError(applicationError);
     }
 

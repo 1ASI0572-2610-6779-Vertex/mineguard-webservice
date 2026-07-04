@@ -33,7 +33,7 @@ public class SensorRepositoryImpl implements SensorRepository {
     }
 
     @Override
-    public Optional<Sensor> findByDeviceId(String deviceId) {
-        return repository.findByDeviceId(deviceId).map(SensorPersistenceAssembler::toDomain);
+    public Optional<Sensor> findByDeviceIdAndCompanyId(String deviceId, Long companyId) {
+        return repository.findByDeviceIdAndCompanyId(deviceId, companyId).map(SensorPersistenceAssembler::toDomain);
     }
 }

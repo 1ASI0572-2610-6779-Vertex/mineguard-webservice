@@ -24,4 +24,6 @@ public class AuditLogEntryPersistenceEntity extends AuditableAbstractPersistence
     private String descriptionParamsJson;
     @Column(name = "actor_key", length = 160)
     private String actorKey;
+    @Column(name = "company_id")
+    private Long companyId;
 }
