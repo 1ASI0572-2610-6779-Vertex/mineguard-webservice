@@ -5,6 +5,7 @@ import com.mineguard.platform.subscriptions.infrastructure.persistence.jpa.assem
 import com.mineguard.platform.subscriptions.infrastructure.persistence.jpa.repositories.CompanyPersistenceRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
+import java.util.Optional;
 @Repository
 public class CompanyRepositoryImpl implements CompanyRepository {
     private final CompanyPersistenceRepository r;
@@ -12,4 +13,5 @@ public class CompanyRepositoryImpl implements CompanyRepository {
     public Company save(Company c){return CompanyPersistenceAssembler.toDomain(r.save(CompanyPersistenceAssembler.toEntity(c)));}
     public List<Company> findAll(){return r.findAll().stream().map(CompanyPersistenceAssembler::toDomain).toList();}
     public long count(){return r.count();}
+    public Optional<Company> findByEdgeApiKey(String edgeApiKey){return r.findByEdgeApiKey(edgeApiKey).map(CompanyPersistenceAssembler::toDomain);}
 }

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mineguard.platform.analytics.infrastructure.persistence.jpa.entities.*;
 import com.mineguard.platform.analytics.infrastructure.persistence.jpa.repositories.*;
-import com.mineguard.platform.assets.domain.model.aggregates.CatalogSummary;
 import com.mineguard.platform.assets.domain.model.aggregates.Driver;
 import com.mineguard.platform.assets.domain.model.aggregates.Trip;
 import com.mineguard.platform.assets.domain.model.aggregates.Vehicle;
@@ -254,7 +253,7 @@ public class DataSeeder {
         for (JsonNode e : db.path("auditLog").path("entries"))
             auditLogEntryRepository.save(new AuditLogEntry(e.path("category").asText(null), e.path("occurredAt").asText(null),
                     e.path("titleKey").asText(null), e.path("descriptionKey").asText(null),
-                    e.path("descriptionParams").toString(), e.path("actorKey").asText(null)));
+                    e.path("descriptionParams").toString(), e.path("actorKey").asText(null), null));
     }
 
     private void seedPlanning(JsonNode db) {

@@ -25,4 +25,9 @@ public class AuditLogEntryRepositoryImpl implements AuditLogEntryRepository {
     public List<AuditLogEntry> findAll() {
         return repository.findAll().stream().map(AuditLogEntryPersistenceAssembler::toDomain).toList();
     }
+
+    @Override
+    public List<AuditLogEntry> findAllByCompanyId(Long companyId) {
+        return repository.findAllByCompanyId(companyId).stream().map(AuditLogEntryPersistenceAssembler::toDomain).toList();
+    }
 }

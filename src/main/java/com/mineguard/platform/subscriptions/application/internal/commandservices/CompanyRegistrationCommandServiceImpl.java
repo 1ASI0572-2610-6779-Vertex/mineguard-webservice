@@ -15,10 +15,12 @@ import com.mineguard.platform.subscriptions.application.commandservices.CompanyR
 import com.mineguard.platform.subscriptions.domain.model.aggregates.Company;
 import com.mineguard.platform.subscriptions.domain.model.commands.RegisterCompanyCommand;
 import com.mineguard.platform.subscriptions.domain.repositories.CompanyRepository;
+import com.mineguard.platform.subscriptions.interfaces.rest.resources.CompanyRegistrationResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 /** Provisions a new tenant: creates the company and its administrator user in one transaction. */
 @Slf4j
@@ -44,7 +46,7 @@ public class CompanyRegistrationCommandServiceImpl implements CompanyRegistratio
     }
 
     @Override
-    public Result<String, ApplicationError> handle(RegisterCompanyCommand command) {
+    public Result<CompanyRegistrationResponse, ApplicationError> handle(RegisterCompanyCommand command) {
         if (command.adminEmail() == null || command.adminEmail().isBlank()) {
             return Result.failure(ApplicationError.validationError("adminEmail", "Admin email is required"));
         }
@@ -52,7 +54,8 @@ public class CompanyRegistrationCommandServiceImpl implements CompanyRegistratio
             return Result.failure(ApplicationError.conflict("User", "Email already registered"));
         }
 
-        var company = companyRepository.save(new Company(command.companyName()));
+        var edgeApiKey = UUID.randomUUID().toString().replace("-", "");
+        var company = companyRepository.save(new Company(command.companyName(), edgeApiKey));
 
         var adminRole = roleRepository.findByName(Roles.ROLE_ADMINISTRATOR)
                 .orElseGet(() -> roleRepository.save(new Role(Roles.ROLE_ADMINISTRATOR)));
@@ -70,9 +73,14 @@ public class CompanyRegistrationCommandServiceImpl implements CompanyRegistratio
                 true));
 
         log.info("[DEV FAILSAFE] CONTRASEÑA TEMPORAL GENERADA PARA {}: {}", command.adminEmail(), tempPassword);
+        log.info("[DEV FAILSAFE] EDGE API KEY GENERADA PARA LA EMPRESA '{}': {}", command.companyName(), edgeApiKey);
         emailService.sendCredentialsEmail(command.adminEmail(), "ROLE_ADMINISTRATOR",
                 generatedUsername, command.companyName(), tempPassword);
 
-        return Result.success("Company registered successfully. Credentials sent to " + command.adminEmail());
+        return Result.success(new CompanyRegistrationResponse(
+                company.getId(),
+                edgeApiKey,
+                generatedUsername,
+                "Company registered successfully. Credentials sent to " + command.adminEmail()));
     }
 }

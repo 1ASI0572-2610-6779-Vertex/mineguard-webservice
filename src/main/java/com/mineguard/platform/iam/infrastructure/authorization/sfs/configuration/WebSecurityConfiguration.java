@@ -93,11 +93,11 @@ public class WebSecurityConfiguration {
                 .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(org.springframework.http.HttpMethod.POST,
-                                "/api/v1/subscriptions",
+                                "/api/v1/companies",
                                 "/api/v1/sessions",
-                                "/api/v1/sessions/mobile",
+                                "/api/v1/mobile-sessions",
                                 "/api/v1/users",
-                                "/api/v1/users/password-resets"
+                                "/api/v1/password-resets"
                         ).permitAll()
                         .requestMatchers(
                                 "/authentication/**",
@@ -105,23 +105,13 @@ public class WebSecurityConfiguration {
                                 "/api/v1/authentication/**",
                                 "/api/v1/authentication/forgot-password",
                                 "/api/v1/health-monitoring/**",
-                                // IoT routes are authenticated by EdgeApiKeyFilter, not by JWT
-                                "/api/v1/iot/**",
+                                // Telemetry routes are authenticated by EdgeApiKeyFilter (per-company X-API-Key), not by JWT
+                                "/api/v1/telemetry",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/h2-console/**",
                                 "/error"
-                        ).permitAll()
-                        // Read-only view-model endpoints polled by the frontends (dev-friendly, no token required)
-                        .requestMatchers(org.springframework.http.HttpMethod.GET,
-                                "/supervisors/**", "/vehiclesInventory/**", "/driversDirectory/**", "/drivers/**", "/catalogSummary/**",
-                                "/vehicles/**", "/operationalAlerts/**", "/auditLog/**", "/cardiacReadings/**",
-                                "/fleetSummary/**", "/liveMapVehicles/**", "/alerts/**", "/performance/**",
-                                "/dashboardSummary/**", "/dashboardTrend/**", "/dashboardRiskDrivers/**",
-                                "/dashboardRecentAlerts/**", "/performanceMetrics/**", "/reports/**",
-                                "/analyticsFatigueBars/**", "/analyticsIncidentDistribution/**",
-                                "/analyticsHistoryRows/**", "/analyticsInsights/**", "/adminSummary/**", "/adminNotices/**"
                         ).permitAll()
                         .anyRequest().authenticated());
         http.headers(headers -> headers.frameOptions(frame -> frame.disable())); // for H2 console

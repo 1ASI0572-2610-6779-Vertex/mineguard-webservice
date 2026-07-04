@@ -14,17 +14,20 @@ public class AuditLogEntry extends AbstractDomainAggregateRoot<AuditLogEntry> {
     @Setter private String descriptionKey;
     @Setter private String descriptionParamsJson;
     @Setter private String actorKey;
+    /** Owning tenant, resolved automatically from the active security context at write time. */
+    @Setter private Long companyId;
 
     public AuditLogEntry() {
     }
 
     public AuditLogEntry(String category, String occurredAt, String titleKey, String descriptionKey,
-                         String descriptionParamsJson, String actorKey) {
+                         String descriptionParamsJson, String actorKey, Long companyId) {
         this.category = category;
         this.occurredAt = occurredAt;
         this.titleKey = titleKey;
         this.descriptionKey = descriptionKey;
         this.descriptionParamsJson = descriptionParamsJson;
         this.actorKey = actorKey;
+        this.companyId = companyId;
     }
 }

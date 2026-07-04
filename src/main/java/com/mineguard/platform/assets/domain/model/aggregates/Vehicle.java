@@ -45,15 +45,15 @@ public class Vehicle extends AbstractDomainAggregateRoot<Vehicle> {
         this.status = status;
     }
 
-    /** Updates the editable inventory fields. */
+    /** Partial update (PATCH semantics): every parameter is optional — {@code null} leaves the current value unchanged. */
     public Vehicle updateInformation(String code, String model, String category, VehicleStatus status,
                                      String assignedDriverName, String shiftLabel) {
-        this.code = code;
-        this.model = model;
-        this.category = category;
+        if (code != null) this.code = code;
+        if (model != null) this.model = model;
+        if (category != null) this.category = category;
         if (status != null) this.status = status;
-        this.assignedDriverName = assignedDriverName;
-        this.shiftLabel = shiftLabel;
+        if (assignedDriverName != null) this.assignedDriverName = assignedDriverName;
+        if (shiftLabel != null) this.shiftLabel = shiftLabel;
         return this;
     }
 

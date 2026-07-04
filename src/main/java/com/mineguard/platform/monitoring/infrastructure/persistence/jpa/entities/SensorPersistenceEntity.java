@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "sensors")
+@Table(name = "sensors", uniqueConstraints = @UniqueConstraint(columnNames = {"company_id", "device_id"}))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,4 +20,6 @@ public class SensorPersistenceEntity extends AuditableAbstractPersistenceEntity 
     private String status;
     @Column(name = "device_id", length = 80)
     private String deviceId;
+    @Column(name = "company_id")
+    private Long companyId;
 }

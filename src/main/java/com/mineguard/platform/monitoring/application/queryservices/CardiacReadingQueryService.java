@@ -1,10 +1,11 @@
 package com.mineguard.platform.monitoring.application.queryservices;
 
 import com.mineguard.platform.monitoring.domain.model.aggregates.CardiacReading;
-import com.mineguard.platform.monitoring.domain.model.queries.GetAllCardiacReadingsQuery;
+import com.mineguard.platform.monitoring.domain.model.queries.GetCardiacReadingQuery;
 
-import java.util.List;
+import java.util.Optional;
 
 public interface CardiacReadingQueryService {
-    List<CardiacReading> handle(GetAllCardiacReadingsQuery query);
+    /** Returns the latest reading for the session, or empty if none exists / ownership fails. */
+    Optional<CardiacReading> handle(GetCardiacReadingQuery query);
 }

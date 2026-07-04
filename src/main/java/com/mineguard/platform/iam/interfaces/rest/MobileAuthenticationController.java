@@ -22,13 +22,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping(value = "/api/v1/sessions", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/v1/mobile-sessions", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Sessions (Mobile)", description = "Mobile session creation for field operators (Flutter app). " +
         "A mobile session differs from a web session in three ways: " +
         "(1) credentials use the driver's workerId (format CDT-{companyId}-{seq}) instead of an email; " +
         "(2) the response includes `driverId` (the numeric Driver ID) so the app can immediately call " +
-        "POST /api/v1/vehicles/{vehicleId}/trips for check-in without a second round trip; " +
-        "(3) non-driver users (supervisors, admins) have `driverId: null` in the response.")
+        "POST /api/v1/vehicles/{vehicleId}/driving-sessions for check-in without a second round trip; " +
+        "(3) non-driver users (supervisors, admins) have `driverId: null` in the response. " +
+        "Formerly POST /api/v1/sessions/mobile.")
 public class MobileAuthenticationController {
 
     private final UserCommandService userCommandService;
@@ -40,7 +41,7 @@ public class MobileAuthenticationController {
         this.driverQueryService = driverQueryService;
     }
 
-    @PostMapping("/mobile")
+    @PostMapping
     @Operation(
             summary = "Create a mobile session (operator sign-in)",
             description = "Authenticates a field operator by workerId and password, returning a JWT session for the Flutter app. " +
@@ -49,11 +50,12 @@ public class MobileAuthenticationController {
                     "On success, returns `{ workerId, fullName, role, token, driverId }` where: " +
                     "`token` is the signed JWT to include as `Authorization: Bearer <token>` in all subsequent requests; " +
                     "`driverId` is the numeric ID of the Driver record (used for check-in at " +
-                    "POST /api/v1/vehicles/{vehicleId}/trips); " +
+                    "POST /api/v1/vehicles/{vehicleId}/driving-sessions); " +
                     "`driverId` is `null` for non-driver users such as mobile supervisors. " +
                     "No JWT is required to call this endpoint (it is public). " +
                     "The IAM → Assets cross-context dependency (resolving driverId from userId) is intentional " +
-                    "at the controller layer to avoid a second round-trip from the mobile app.")
+                    "at the controller layer to avoid a second round-trip from the mobile app. " +
+                    "Formerly POST /api/v1/sessions/mobile.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Mobile session created — JWT and driverId returned"),
             @ApiResponse(responseCode = "401", description = "Invalid workerId or password"),

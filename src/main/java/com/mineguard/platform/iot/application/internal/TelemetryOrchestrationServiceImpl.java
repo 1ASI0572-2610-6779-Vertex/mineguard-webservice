@@ -57,10 +57,12 @@ public class TelemetryOrchestrationServiceImpl implements TelemetryOrchestration
     }
 
     @Override
-    public Result<TelemetryIngestionResponse, ApplicationError> orchestrate(TelemetryIngestionRequest request) {
+    public Result<TelemetryIngestionResponse, ApplicationError> orchestrate(TelemetryIngestionRequest request, Long companyId) {
 
-        // ── Step 1: Resolve sensor context ──────────────────────────────────────────
-        var sensorOpt = sensorRepository.findByDeviceId(request.deviceId());
+        // ── Step 1: Resolve sensor context, scoped to the caller's tenant ────────────
+        // Scoping by companyId (resolved from the X-API-Key by EdgeApiKeyFilter) means two
+        // companies provisioning a sensor with the same device_id can never cross-contaminate.
+        var sensorOpt = sensorRepository.findByDeviceIdAndCompanyId(request.deviceId(), companyId);
         if (sensorOpt.isEmpty()) {
             return Result.failure(ApplicationError.notFound("Sensor", request.deviceId()));
         }
@@ -68,8 +70,7 @@ public class TelemetryOrchestrationServiceImpl implements TelemetryOrchestration
         var vehicleId = sensor.getVehicleId();
 
         var activeTrip = tripRepository.findFirstByVehicleIdAndStatus(vehicleId, TripStatus.IN_PROGRESS);
-        Long tripId    = activeTrip.map(t -> t.getId()).orElse(null);
-        Long companyId = activeTrip.map(t -> t.getCompanyId()).orElse(null);
+        Long tripId = activeTrip.map(t -> t.getId()).orElse(null);
 
         var occurredAt = request.timestamp() != null ? request.timestamp() : Instant.now().toString();
         List<String> processed = new ArrayList<>();
@@ -122,7 +123,7 @@ public class TelemetryOrchestrationServiceImpl implements TelemetryOrchestration
 
         var response = new TelemetryIngestionResponse(
                 request.deviceId(),
-                String.join(",", processed),
+                processed,
                 alertRaised,
                 "Telemetry ingested: " + processed.size() + " action(s) executed"
         );

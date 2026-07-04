@@ -48,11 +48,11 @@ public class Supervisor extends AbstractDomainAggregateRoot<Supervisor> {
         this(null, command.fullName(), command.corporateId(), command.email(), AccessStatus.ACTIVE);
     }
 
-    /** Updates the editable directory fields. */
+    /** Partial update (PATCH semantics): every parameter is optional — {@code null} leaves the current value unchanged. */
     public Supervisor updateInformation(String fullName, String corporateId, String email, AccessStatus accessStatus) {
-        this.fullName = fullName;
-        this.corporateId = corporateId;
-        this.email = email;
+        if (fullName != null) this.fullName = fullName;
+        if (corporateId != null) this.corporateId = corporateId;
+        if (email != null) this.email = email;
         if (accessStatus != null) {
             this.accessStatus = accessStatus;
         }
