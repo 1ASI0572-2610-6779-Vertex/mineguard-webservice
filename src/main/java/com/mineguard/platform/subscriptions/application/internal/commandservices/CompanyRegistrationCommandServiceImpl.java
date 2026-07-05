@@ -55,7 +55,9 @@ public class CompanyRegistrationCommandServiceImpl implements CompanyRegistratio
         }
 
         var edgeApiKey = UUID.randomUUID().toString().replace("-", "");
-        var company = companyRepository.save(new Company(command.companyName(), edgeApiKey));
+        // Descriptive-only plan; default to STANDARD when the client omits it.
+        var plan = Company.normalizePlan(command.subscriptionPlan());
+        var company = companyRepository.save(new Company(command.companyName(), edgeApiKey, plan));
 
         var adminRole = roleRepository.findByName(Roles.ROLE_ADMINISTRATOR)
                 .orElseGet(() -> roleRepository.save(new Role(Roles.ROLE_ADMINISTRATOR)));
