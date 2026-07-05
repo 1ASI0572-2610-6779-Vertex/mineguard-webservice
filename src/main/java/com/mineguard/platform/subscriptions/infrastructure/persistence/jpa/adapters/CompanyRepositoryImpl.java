@@ -11,6 +11,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
     private final CompanyPersistenceRepository r;
     public CompanyRepositoryImpl(CompanyPersistenceRepository r){this.r=r;}
     public Company save(Company c){return CompanyPersistenceAssembler.toDomain(r.save(CompanyPersistenceAssembler.toEntity(c)));}
+    public Optional<Company> findById(Long id){return r.findById(id).map(CompanyPersistenceAssembler::toDomain);}
     public List<Company> findAll(){return r.findAll().stream().map(CompanyPersistenceAssembler::toDomain).toList();}
     public long count(){return r.count();}
     public Optional<Company> findByEdgeApiKey(String edgeApiKey){return r.findByEdgeApiKey(edgeApiKey).map(CompanyPersistenceAssembler::toDomain);}
