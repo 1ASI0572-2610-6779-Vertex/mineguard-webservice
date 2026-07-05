@@ -28,6 +28,11 @@ public class SensorRepositoryImpl implements SensorRepository {
     }
 
     @Override
+    public List<Sensor> findAllByCompanyId(Long companyId) {
+        return repository.findAllByCompanyId(companyId).stream().map(SensorPersistenceAssembler::toDomain).toList();
+    }
+
+    @Override
     public long count() {
         return repository.count();
     }
@@ -35,5 +40,10 @@ public class SensorRepositoryImpl implements SensorRepository {
     @Override
     public Optional<Sensor> findByDeviceIdAndCompanyId(String deviceId, Long companyId) {
         return repository.findByDeviceIdAndCompanyId(deviceId, companyId).map(SensorPersistenceAssembler::toDomain);
+    }
+
+    @Override
+    public boolean existsByVehicleIdAndCompanyId(Long vehicleId, Long companyId) {
+        return repository.existsByVehicleIdAndCompanyId(vehicleId, companyId);
     }
 }
