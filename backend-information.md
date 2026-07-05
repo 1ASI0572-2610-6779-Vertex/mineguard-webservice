@@ -31,7 +31,7 @@ Gestión de identidad, sesiones y directorio de supervisores.
 - **Descripción y Reglas de Negocio:** Autentica a un usuario web (Supervisor o Admin) por `username`/`password` y emite un JWT firmado sin expiración server-side (la revocación se maneja vía cambio de contraseña). Las credenciales inválidas devuelven `401` sin distinguir si falló el usuario o la contraseña (mitigación de enumeración de usuarios).
 - **I/O:**
   - **Body (`SignInResource`):** `username` (string), `password` (string).
-  - **Retorna:** `200 OK` con `AuthenticatedUserResource` (`id`, `username`, `token`, `role`, `requiresPasswordChange`). `401` si las credenciales son inválidas.
+  - **Retorna:** `200 OK` con `AuthenticatedUserResource` (`id`, `username`, `token`, `role`, `requiresPasswordChange`, `subscriptionPlan`). `subscriptionPlan` (string) es el plan descriptivo de la empresa vinculada al usuario (`STARTER`/`STANDARD`/`ENTERPRISE`); es `STANDARD` por defecto para empresas sin plan asignado. `401` si las credenciales son inválidas.
 
 #### `POST /mobile-sessions`
 - **Descripción y Reglas de Negocio:** Autentica a un operador de campo por `workerId` (formato `CDT-{companyId}-{seq}`, generado al crear el Driver) en lugar de email. Resuelve adicionalmente el `driverId` numérico (cruce IAM → Assets) para que la app móvil pueda hacer check-in inmediato en una Driving Session sin una segunda petición.
@@ -200,7 +200,7 @@ Registro de empresas (tenants) y todas las proyecciones analíticas computadas d
 #### `POST /companies`
 - **Descripción y Reglas de Negocio:** Registro de un nuevo tenant (alta de empresa minera). En una sola operación atómica: (1) crea el registro `Company`; (2) crea el usuario administrador (`role=ADMIN`); (3) genera una contraseña temporal y la envía por correo; (4) genera una **API key de telemetría única para la empresa** (ver §3); (5) activa la suscripción. No requiere JWT — es el punto de entrada para clientes nuevos. **Respuesta estructurada:** ya no retorna un mensaje de texto plano — retorna un objeto JSON (`CompanyRegistrationResponse`) con los identificadores generados, para que el cliente los consuma programáticamente en vez de parsear texto libre.
 - **I/O:**
-  - **Body (`CompanyRegistrationRequest`):** `companyName`, `adminFullName`, `adminEmail` (todos requeridos, `adminEmail` con formato válido).
+  - **Body (`CompanyRegistrationRequest`):** `companyName`, `adminFullName`, `adminEmail` (todos requeridos, `adminEmail` con formato válido); `subscriptionPlan` (string, **opcional**, valores: `STARTER`, `STANDARD`, `ENTERPRISE`). Si se omite, se asigna `STANDARD`. Es un dato puramente descriptivo — no impone límites de nodos ni de usuarios.
   - **Retorna:** `201 Created` con `CompanyRegistrationResponse`:
     ```json
     {

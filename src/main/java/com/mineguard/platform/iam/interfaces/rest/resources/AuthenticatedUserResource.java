@@ -1,6 +1,6 @@
 package com.mineguard.platform.iam.interfaces.rest.resources;
 
-/** Web authentication response: {id, username, token, role, requiresPasswordChange}. */
+/** Web authentication response: {id, username, token, role, requiresPasswordChange, subscriptionPlan}. */
 public record AuthenticatedUserResource(Long id, String username, String token, String role,
-                                        boolean requiresPasswordChange) {
+                                        boolean requiresPasswordChange, String subscriptionPlan) {
 }

@@ -15,6 +15,8 @@ import com.mineguard.platform.iam.interfaces.rest.transform.UserResourceFromEnti
 import com.mineguard.platform.shared.application.result.ApplicationError;
 import com.mineguard.platform.shared.interfaces.rest.transform.ErrorResponseAssembler;
 import com.mineguard.platform.shared.interfaces.rest.transform.ResponseEntityAssembler;
+import com.mineguard.platform.subscriptions.domain.model.aggregates.Company;
+import com.mineguard.platform.subscriptions.domain.repositories.CompanyRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -45,10 +47,13 @@ public class AuthenticationController {
 
     private final UserCommandService userCommandService;
     private final UserRepository userRepository;
+    private final CompanyRepository companyRepository;
 
-    public AuthenticationController(UserCommandService userCommandService, UserRepository userRepository) {
+    public AuthenticationController(UserCommandService userCommandService, UserRepository userRepository,
+                                    CompanyRepository companyRepository) {
         this.userCommandService = userCommandService;
         this.userRepository = userRepository;
+        this.companyRepository = companyRepository;
     }
 
     // =========================================================================
@@ -74,8 +79,21 @@ public class AuthenticationController {
         return ResponseEntityAssembler.toResponseEntityFromResult(
                 result,
                 pair -> AuthenticatedUserResourceFromEntityAssembler.toResourceFromEntity(
-                        pair.getLeft(), pair.getRight()),
+                        pair.getLeft(), pair.getRight(), resolveSubscriptionPlan(pair.getLeft().getCompanyId())),
                 HttpStatus.OK);
+    }
+
+    /**
+     * Resolves the descriptive subscription plan of the Company linked to the authenticated user.
+     * Falls back to the default plan when the user has no company or the record is missing —
+     * this is a cosmetic field and must never block a successful login.
+     */
+    private String resolveSubscriptionPlan(Long companyId) {
+        if (companyId == null) return Company.DEFAULT_SUBSCRIPTION_PLAN;
+        return companyRepository.findById(companyId)
+                .map(Company::getSubscriptionPlan)
+                .map(Company::normalizePlan)
+                .orElse(Company.DEFAULT_SUBSCRIPTION_PLAN);
     }
 
     // =========================================================================
