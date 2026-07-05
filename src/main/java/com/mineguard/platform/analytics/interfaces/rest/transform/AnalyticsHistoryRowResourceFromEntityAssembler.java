@@ -8,6 +8,6 @@ public final class AnalyticsHistoryRowResourceFromEntityAssembler {
     }
 
     public static AnalyticsHistoryRowResource toResourceFromEntity(AnalyticsHistoryRow d) {
-        return new AnalyticsHistoryRowResource(d.getId(), d.getDate(), d.getTime(), d.getCriticality(), d.getCriticalityLabel(), d.getIncidentType(), d.getInvolved(), d.getLocation());
+        return new AnalyticsHistoryRowResource(d.getId(), d.getDriverId(), d.getReportId(), d.getDate(), d.getTime(), d.getCriticality(), d.getCriticalityLabel(), d.getIncidentType(), d.getInvolved(), d.getLocation());
     }
 }
