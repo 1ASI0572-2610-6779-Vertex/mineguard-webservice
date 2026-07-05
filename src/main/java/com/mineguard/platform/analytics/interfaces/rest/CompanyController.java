@@ -117,7 +117,7 @@ public class CompanyController {
     })
     public ResponseEntity<?> create(@Valid @RequestBody CompanyRegistrationRequest request) {
         var command = new RegisterCompanyCommand(
-                request.companyName(), request.adminFullName(), request.adminEmail());
+                request.companyName(), request.adminFullName(), request.adminEmail(), request.subscriptionPlan());
         var result = registrationCommandService.handle(command);
         return ResponseEntityAssembler.toResponseEntityFromResult(result, msg -> msg, HttpStatus.CREATED);
     }
