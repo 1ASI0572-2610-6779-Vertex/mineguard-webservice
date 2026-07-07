@@ -99,16 +99,13 @@ class AnalyticsProjectionSupport {
     }
 
     /**
-     * Sensores no tienen companyId en su tabla. Se filtran indirectamente:
-     * solo se exponen los sensores montados en vehículos que pertenecen al tenant.
+     * Sensores del tenant. Ahora que Sensor lleva companyId propio, se filtran directamente por
+     * companyId (antes se derivaba vía los vehículos del tenant, lo que dejaba fuera un device
+     * reasignado o retirado cuyo vehículo hubiese cambiado).
      */
     List<Sensor> sensors() {
-        Set<Long> tenantVehicleIds = vehicles().stream()
-                .map(Vehicle::getId)
-                .collect(Collectors.toSet());
-        return sensorRepository.findAll().stream()
-                .filter(s -> s.getVehicleId() != null && tenantVehicleIds.contains(s.getVehicleId()))
-                .toList();
+        var id = securityContext.currentCompanyId();
+        return id != null ? sensorRepository.findAllByCompanyId(id) : List.of();
     }
 
     /**

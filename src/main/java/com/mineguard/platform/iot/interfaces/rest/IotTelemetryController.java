@@ -67,9 +67,11 @@ public class IotTelemetryController {
                     2. **Cardiac health** — if `bpm > 0`, persists a heart-rate SensorReading.
                     3. **GPS location** — if `lat` and `lng` are present, updates the live-map
                        vehicle marker for real-time fleet tracking.
-                    4. **Proximity / collision alert** — if `collision == true` OR
-                       `distance_cm ≤ 40 cm`, raises a CRITICAL proximity alert linked to
-                       the active trip.
+                    4. **Proximity / collision telemetry** — persists distance and collision
+                       samples when present.
+                    5. **Proximity / collision alert** — if `collision == true` OR
+                       `distance_cm ≤ 20 cm`, raises a CRITICAL proximity alert. The alert is
+                       linked to the active trip when one exists.
 
                     The `processed` field in the response is a JSON array of the executed action
                     names (e.g. `["cardiac", "location", "alert"]`), not a comma-joined string, so

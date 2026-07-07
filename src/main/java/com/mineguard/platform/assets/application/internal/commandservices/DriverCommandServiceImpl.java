@@ -3,6 +3,7 @@ package com.mineguard.platform.assets.application.internal.commandservices;
 import com.mineguard.platform.assets.application.commandservices.DriverCommandService;
 import com.mineguard.platform.assets.domain.model.aggregates.Driver;
 import com.mineguard.platform.assets.domain.model.commands.CreateDriverCommand;
+import com.mineguard.platform.assets.domain.model.commands.DeactivateDriverCommand;
 import com.mineguard.platform.assets.domain.model.commands.UpdateDriverCommand;
 import com.mineguard.platform.assets.domain.model.valueobjects.ShiftStatus;
 import com.mineguard.platform.assets.domain.repositories.DriverRepository;
@@ -111,6 +112,26 @@ public class DriverCommandServiceImpl implements DriverCommandService {
                 "{\"driverId\":" + saved.getId() + ",\"fullName\":\"" + saved.getFullName() + "\"}",
                 "monitoring.audit.actors.adminGlobal");
         return Result.success(saved);
+    }
+
+    @Override
+    public Result<Driver, ApplicationError> handle(DeactivateDriverCommand command) {
+        var existing = driverRepository.findById(command.id());
+        var callerCompanyId = securityContext.currentCompanyId();
+        if (existing.isEmpty() || callerCompanyId == null
+                || !callerCompanyId.equals(existing.get().getCompanyId())) {
+            return Result.failure(ApplicationError.notFound("Driver", String.valueOf(command.id())));
+        }
+        var driver = existing.get();
+        if (driver.getShiftStatus() != ShiftStatus.INACTIVE) {
+            driver.setShiftStatus(ShiftStatus.INACTIVE);
+            driver = driverRepository.save(driver);
+            auditLogWriter.record("administrative", "monitoring.audit.entries.driverDeactivated.title",
+                    "monitoring.audit.entries.driverDeactivated.description",
+                    "{\"driverId\":" + driver.getId() + ",\"fullName\":\"" + driver.getFullName() + "\"}",
+                    "monitoring.audit.actors.adminGlobal");
+        }
+        return Result.success(driver);
     }
 
     private String operatorId(String license) {

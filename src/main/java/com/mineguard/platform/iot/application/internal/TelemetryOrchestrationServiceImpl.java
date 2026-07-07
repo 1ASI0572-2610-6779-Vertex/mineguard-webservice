@@ -8,9 +8,11 @@ import com.mineguard.platform.iot.interfaces.rest.resources.TelemetryIngestionRe
 import com.mineguard.platform.monitoring.application.commandservices.AlertCommandService;
 import com.mineguard.platform.monitoring.application.commandservices.CardiacReadingCommandService;
 import com.mineguard.platform.monitoring.application.commandservices.LiveMapVehicleCommandService;
+import com.mineguard.platform.monitoring.domain.model.aggregates.SensorReading;
 import com.mineguard.platform.monitoring.domain.model.commands.CreateProximityAlertCommand;
 import com.mineguard.platform.monitoring.domain.model.commands.IngestCardiacReadingCommand;
 import com.mineguard.platform.monitoring.domain.model.commands.UpdateVehicleLocationCommand;
+import com.mineguard.platform.monitoring.domain.repositories.SensorReadingRepository;
 import com.mineguard.platform.monitoring.domain.repositories.SensorRepository;
 import com.mineguard.platform.shared.application.result.ApplicationError;
 import com.mineguard.platform.shared.application.result.Result;
@@ -29,15 +31,17 @@ import java.util.List;
  * <p>Step 1 — Resolve sensor context (vehicleId, tripId, companyId) from device_id.</p>
  * <p>Step 2 — Persist cardiac reading when bpm > 0.</p>
  * <p>Step 3 — Update live-map GPS marker when lat/lng are present.</p>
- * <p>Step 4 — Raise CRITICAL proximity alert when collision==true OR distance_cm ≤ 40.</p>
+ * <p>Step 4 — Persist proximity/collision samples and raise a CRITICAL alert when
+ * collision==true OR distance_cm ≤ 20.</p>
  */
 @Service
 public class TelemetryOrchestrationServiceImpl implements TelemetryOrchestrationService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TelemetryOrchestrationServiceImpl.class);
-    private static final int PROXIMITY_THRESHOLD_CM = 40;
+    private static final int PROXIMITY_THRESHOLD_CM = 20;
 
     private final SensorRepository sensorRepository;
+    private final SensorReadingRepository sensorReadingRepository;
     private final TripRepository tripRepository;
     private final CardiacReadingCommandService cardiacReadingCommandService;
     private final LiveMapVehicleCommandService liveMapVehicleCommandService;
@@ -45,11 +49,13 @@ public class TelemetryOrchestrationServiceImpl implements TelemetryOrchestration
 
     public TelemetryOrchestrationServiceImpl(
             SensorRepository sensorRepository,
+            SensorReadingRepository sensorReadingRepository,
             TripRepository tripRepository,
             CardiacReadingCommandService cardiacReadingCommandService,
             LiveMapVehicleCommandService liveMapVehicleCommandService,
             AlertCommandService alertCommandService) {
         this.sensorRepository = sensorRepository;
+        this.sensorReadingRepository = sensorReadingRepository;
         this.tripRepository = tripRepository;
         this.cardiacReadingCommandService = cardiacReadingCommandService;
         this.liveMapVehicleCommandService = liveMapVehicleCommandService;
@@ -100,24 +106,32 @@ public class TelemetryOrchestrationServiceImpl implements TelemetryOrchestration
             }
         }
 
-        // ── Step 4: Proximity / collision alert ──────────────────────────────────────
+        // ── Step 4: Proximity / collision telemetry ──────────────────────────────────
+        if (request.distanceCm() != null) {
+            sensorReadingRepository.save(new SensorReading(
+                    sensor.getId(), "distance_cm", request.distanceCm(), occurredAt));
+            processed.add("proximity");
+        }
+
+        if (request.collision()) {
+            sensorReadingRepository.save(new SensorReading(
+                    sensor.getId(), "collision", 1, occurredAt));
+            processed.add("collision");
+        }
+
+        // ── Step 5: Proximity / collision alert ──────────────────────────────────────
         boolean proximityViolation = request.distanceCm() != null && request.distanceCm() <= PROXIMITY_THRESHOLD_CM;
         if (request.collision() || proximityViolation) {
-            if (tripId != null) {
-                var alertCmd = new CreateProximityAlertCommand(
-                        tripId, sensor.getId(), companyId,
-                        request.distanceCm(), request.collision(), occurredAt);
-                var alertResult = alertCommandService.handle(alertCmd);
-                if (alertResult.isSuccess()) {
-                    processed.add("alert");
-                    alertRaised = true;
-                } else {
-                    LOGGER.warn("Alert creation failed for trip {}: {}", tripId,
-                            ((Result.Failure<?, ApplicationError>) alertResult).error().message());
-                }
+            var alertCmd = new CreateProximityAlertCommand(
+                    tripId, sensor.getId(), companyId,
+                    request.distanceCm(), request.collision(), occurredAt);
+            var alertResult = alertCommandService.handle(alertCmd);
+            if (alertResult.isSuccess()) {
+                processed.add("alert");
+                alertRaised = true;
             } else {
-                LOGGER.warn("Proximity event for device {} but no active trip found for vehicle {} — alert skipped",
-                        request.deviceId(), vehicleId);
+                LOGGER.warn("Alert creation failed for device {} and trip {}: {}", request.deviceId(), tripId,
+                        ((Result.Failure<?, ApplicationError>) alertResult).error().message());
             }
         }
 

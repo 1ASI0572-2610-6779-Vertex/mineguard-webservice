@@ -1,10 +1,13 @@
 package com.mineguard.platform.shared.interfaces.rest;
 
 import com.mineguard.platform.shared.application.result.ApplicationError;
+import com.mineguard.platform.shared.interfaces.rest.resources.ErrorResource;
 import com.mineguard.platform.shared.interfaces.rest.transform.ErrorResponseAssembler;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -79,6 +82,23 @@ public class GlobalExceptionHandler {
                         : resolveMessageOrDefault("validation.request.failed", "Request validation failed")
         );
         return ErrorResponseAssembler.toErrorResponseFromApplicationError(applicationError);
+    }
+
+    /**
+     * Handles method-security authorization failures. A {@code @PreAuthorize} denial throws
+     * {@link AccessDeniedException} (Spring Security's {@code AuthorizationDeniedException} is a
+     * subclass) from inside the controller invocation, where Spring MVC's resolver catches it
+     * <em>before</em> the security filter chain can translate it — so without this handler it would
+     * fall through to {@link #handleGenericException} and be reported as 500 instead of 403.
+     *
+     * @param ex the access-denied exception
+     * @return error response with FORBIDDEN status
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResource> handleAccessDenied(AccessDeniedException ex) {
+        var message = resolveMessageOrDefault("error.access-denied.message",
+                "Access denied — you do not have permission to perform this action");
+        return new ResponseEntity<>(new ErrorResource("ACCESS_DENIED", message, null), HttpStatus.FORBIDDEN);
     }
 
     /**

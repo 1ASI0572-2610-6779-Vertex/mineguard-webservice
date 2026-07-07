@@ -15,6 +15,7 @@ public final class VehiclePersistenceAssembler {
         v.setDriverId(e.getDriverId());
         v.setVehicleType(e.getVehicleType());
         v.setCompanyId(e.getCompanyId());
+        v.setArchived(e.isArchived());
         return v;
     }
 
@@ -30,6 +31,7 @@ public final class VehiclePersistenceAssembler {
         e.setDriverId(v.getDriverId());
         e.setVehicleType(v.getVehicleType());
         e.setCompanyId(v.getCompanyId());
+        e.setArchived(v.isArchived());
         return e;
     }
 }
