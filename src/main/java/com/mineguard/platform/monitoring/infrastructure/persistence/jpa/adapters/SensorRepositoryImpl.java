@@ -46,4 +46,22 @@ public class SensorRepositoryImpl implements SensorRepository {
     public boolean existsByVehicleIdAndCompanyId(Long vehicleId, Long companyId) {
         return repository.existsByVehicleIdAndCompanyId(vehicleId, companyId);
     }
+
+    @Override
+    public Optional<Sensor> findByIdAndCompanyId(Long id, Long companyId) {
+        return repository.findByIdAndCompanyId(id, companyId).map(SensorPersistenceAssembler::toDomain);
+    }
+
+    @Override
+    public Optional<Sensor> findActiveByVehicleIdAndCompanyId(Long vehicleId, Long companyId) {
+        return repository.findFirstByVehicleIdAndCompanyIdAndStatusNot(
+                        vehicleId, companyId, Sensor.STATUS_RETIRED)
+                .map(SensorPersistenceAssembler::toDomain);
+    }
+
+    @Override
+    public boolean existsActiveByVehicleIdAndCompanyId(Long vehicleId, Long companyId) {
+        return repository.existsByVehicleIdAndCompanyIdAndStatusNot(
+                vehicleId, companyId, Sensor.STATUS_RETIRED);
+    }
 }

@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Table(name = "vehicles")
@@ -32,4 +33,7 @@ public class VehiclePersistenceEntity extends AuditableAbstractPersistenceEntity
     private String vehicleType;
     @Column(name = "company_id")
     private Long companyId;
+    @Column(name = "archived", nullable = false)
+    @ColumnDefault("false")
+    private boolean archived;
 }

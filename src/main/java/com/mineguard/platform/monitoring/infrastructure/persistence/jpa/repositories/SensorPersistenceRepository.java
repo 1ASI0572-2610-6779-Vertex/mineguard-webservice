@@ -12,4 +12,8 @@ public interface SensorPersistenceRepository extends JpaRepository<SensorPersist
     Optional<SensorPersistenceEntity> findByDeviceIdAndCompanyId(String deviceId, Long companyId);
     List<SensorPersistenceEntity> findAllByCompanyId(Long companyId);
     boolean existsByVehicleIdAndCompanyId(Long vehicleId, Long companyId);
+    Optional<SensorPersistenceEntity> findByIdAndCompanyId(Long id, Long companyId);
+    Optional<SensorPersistenceEntity> findFirstByVehicleIdAndCompanyIdAndStatusNot(
+            Long vehicleId, Long companyId, String status);
+    boolean existsByVehicleIdAndCompanyIdAndStatusNot(Long vehicleId, Long companyId, String status);
 }
