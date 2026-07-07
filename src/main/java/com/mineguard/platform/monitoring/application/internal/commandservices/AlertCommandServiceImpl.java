@@ -58,9 +58,10 @@ public class AlertCommandServiceImpl implements AlertCommandService {
     public Result<Alert, ApplicationError> handle(CreateProximityAlertCommand command) {
         var type = command.collision() ? AlertType.PROXIMITY_COLLISION : AlertType.PROXIMITY;
         var rawType = command.collision() ? "proximity_collision" : "proximity";
+        var tripReference = command.tripId() == null ? "without active trip" : "trip " + command.tripId();
         var description = command.collision()
-                ? "Collision event reported by sensor (trip " + command.tripId() + ")"
-                : "Obstacle detected at " + command.distanceCm() + " cm — below safety threshold (trip " + command.tripId() + ")";
+                ? "Collision event reported by sensor (" + tripReference + ")"
+                : "Obstacle detected at " + command.distanceCm() + " cm — below safety threshold (" + tripReference + ")";
         var alert = new Alert(command.tripId(), command.sensorId(), rawType, "critical",
                 AlertStatus.ACTIVE, command.occurredAt());
         alert.setType(type);

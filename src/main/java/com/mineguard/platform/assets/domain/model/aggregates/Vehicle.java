@@ -22,6 +22,8 @@ public class Vehicle extends AbstractDomainAggregateRoot<Vehicle> {
     @Setter private Long driverId;
     @Setter private String vehicleType;
     @Setter private Long companyId;
+    /** Soft-delete flag: an archived (decommissioned) vehicle is hidden from the inventory by default. */
+    @Setter private boolean archived;
 
     public Vehicle() {
     }
@@ -59,5 +61,10 @@ public class Vehicle extends AbstractDomainAggregateRoot<Vehicle> {
 
     public boolean isAssigned() {
         return assignedDriverName != null && !assignedDriverName.isBlank();
+    }
+
+    /** Archive (decommission) this vehicle without deleting its row — preserves history. */
+    public void archive() {
+        this.archived = true;
     }
 }

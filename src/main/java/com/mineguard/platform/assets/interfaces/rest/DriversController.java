@@ -4,15 +4,21 @@ import com.mineguard.platform.analytics.application.queryservices.DashboardRiskD
 import com.mineguard.platform.analytics.domain.model.aggregates.DashboardRiskDriver;
 import com.mineguard.platform.assets.application.commandservices.DriverCommandService;
 import com.mineguard.platform.assets.application.queryservices.DriverQueryService;
+import com.mineguard.platform.assets.domain.model.aggregates.Driver;
 import com.mineguard.platform.assets.domain.model.commands.CreateDriverCommand;
+import com.mineguard.platform.assets.domain.model.commands.DeactivateDriverCommand;
 import com.mineguard.platform.assets.domain.model.commands.UpdateDriverCommand;
 import com.mineguard.platform.assets.domain.model.queries.GetAllDriversQuery;
+import com.mineguard.platform.assets.domain.model.valueobjects.ShiftStatus;
 import com.mineguard.platform.assets.domain.model.queries.GetDriverByIdQuery;
 import com.mineguard.platform.assets.interfaces.rest.resources.CreateDriverResource;
 import com.mineguard.platform.assets.interfaces.rest.resources.DriverResource;
 import com.mineguard.platform.assets.interfaces.rest.resources.UpdateDriverResource;
 import com.mineguard.platform.assets.interfaces.rest.transform.DriverResourceFromEntityAssembler;
+import com.mineguard.platform.shared.application.result.ApplicationError;
+import com.mineguard.platform.shared.application.result.Result;
 import com.mineguard.platform.shared.infrastructure.security.SecurityContextFacade;
+import com.mineguard.platform.shared.interfaces.rest.transform.ErrorResponseAssembler;
 import com.mineguard.platform.shared.interfaces.rest.transform.ResponseEntityAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -23,6 +29,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Comparator;
@@ -60,7 +67,9 @@ public class DriversController {
                     "former GET /dashboard/risk-drivers widget endpoint) and `limit=N` to cap the result size " +
                     "— e.g. `GET /api/v1/drivers?sort=-riskScore&limit=5` for the 'At-Risk Drivers' widget. " +
                     "Sorting never changes the response shape: every `DriverResource` field is always populated " +
-                    "the same way regardless of `sort` — only the ordering (and, with `limit`, the count) changes.")
+                    "the same way regardless of `sort` — only the ordering (and, with `limit`, the count) changes. " +
+                    "Inactive (deactivated) drivers are excluded by default; pass `includeInactive=true` to include " +
+                    "them for audit.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Driver list returned successfully"),
             @ApiResponse(responseCode = "403", description = "Access denied — JWT missing or invalid")
@@ -71,8 +80,12 @@ public class DriversController {
             @Parameter(description = "Optional sort key. Accepted value: `-riskScore` (descending)")
             @RequestParam(required = false) String sort,
             @Parameter(description = "Optional maximum number of results to return")
-            @RequestParam(required = false) Integer limit) {
-        var allDrivers = driverQueryService.handle(new GetAllDriversQuery());
+            @RequestParam(required = false) Integer limit,
+            @Parameter(description = "Include inactive (deactivated) drivers. Defaults to false.")
+            @RequestParam(required = false, defaultValue = "false") boolean includeInactive) {
+        var allDrivers = driverQueryService.handle(new GetAllDriversQuery()).stream()
+                .filter(d -> includeInactive || d.getShiftStatus() != ShiftStatus.INACTIVE)
+                .toList();
         List<DriverResource> drivers;
         if ("-riskScore".equals(sort)) {
             Map<Long, Double> riskScoreByDriverId = riskDriverQueryService.findAll().stream()
@@ -154,5 +167,28 @@ public class DriversController {
                 resource.fullName(), resource.licenseNumber(), resource.workShift());
         return ResponseEntityAssembler.toResponseEntityFromResult(driverCommandService.handle(command),
                 DriverResourceFromEntityAssembler::toResourceFromEntity, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{driverId}")
+    @PreAuthorize("hasAnyRole('ADMINISTRATOR','SUPERVISOR')")
+    @Operation(
+            summary = "Deactivate a driver",
+            description = "Soft-deletes the driver: it is marked INACTIVE, never physically removed, so its " +
+                    "historical reports and driving sessions are preserved. The driver is then excluded from the " +
+                    "directory by default (pass `includeInactive=true` on GET to see it).")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Driver deactivated"),
+            @ApiResponse(responseCode = "404", description = "Driver not found or does not belong to this tenant"),
+            @ApiResponse(responseCode = "403", description = "Access denied — Administrator or Supervisor role required")
+    })
+    public ResponseEntity<?> deactivate(
+            @Parameter(description = "Unique numeric identifier of the driver to deactivate", required = true)
+            @PathVariable("driverId") Long driverId) {
+        Result<Driver, ApplicationError> result = driverCommandService.handle(new DeactivateDriverCommand(driverId));
+        return switch (result) {
+            case Result.Success<Driver, ApplicationError> ignored -> ResponseEntity.noContent().build();
+            case Result.Failure<Driver, ApplicationError> failure ->
+                    ErrorResponseAssembler.toErrorResponseFromApplicationError(failure.error());
+        };
     }
 }

@@ -43,6 +43,12 @@ public class CompanyKpisQueryServiceImpl implements CompanyKpisQueryService {
         int vehiclesAlert = (int) vehicles.stream().filter(v -> v.getStatus() == VehicleStatus.ALERT
                 || v.getStatus() == VehicleStatus.INACTIVE || v.getStatus() == VehicleStatus.RESTRICTED_ROUTE).count();
 
+        // Retired devices reserve their id but no longer count as fleet hardware — exclude them from
+        // both the active and total sensor KPIs so the toolbar reflects the real, in-service fleet.
+        int activeSensors = (int) sensors.stream()
+                .filter(s -> "active".equalsIgnoreCase(s.getStatus())).count();
+        int totalSensors = (int) sensors.stream().filter(s -> !s.isRetired()).count();
+
         var kpis = new CompanyKpis(
                 companyId,
                 drivers.size(),
@@ -51,8 +57,8 @@ public class CompanyKpisQueryServiceImpl implements CompanyKpisQueryService {
                 vehiclesTotal == 0 ? 0 : (int) Math.round(vehiclesOperational * 100.0 / vehiclesTotal),
                 (int) support.supervisorsCount(),
                 (int) support.lockedSupervisorsCount(),
-                (int) sensors.stream().filter(s -> "active".equalsIgnoreCase(s.getStatus())).count(),
-                sensors.size(),
+                activeSensors,
+                totalSensors,
                 (int) support.alerts().stream().filter(a -> "high".equalsIgnoreCase(a.getSeverity())).count(),
                 metrics.stream().mapToInt(PerformanceMetric::getFatigueEvents).sum());
         return Optional.of(kpis);
