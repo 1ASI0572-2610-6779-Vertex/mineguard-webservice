@@ -51,7 +51,7 @@ public class OpenApiConfiguration {
                                 .url("https://opensource.org/licenses/MIT")));
 
         openApi.servers(List.of(
-                new Server().url("http://localhost:8080").description("Local Development Environment")
+                new Server().url("https://mineguard-webservice.onrender.com").description("Production Environment")
         ));
 
         final String bearerSchemeName = "bearerAuth";
