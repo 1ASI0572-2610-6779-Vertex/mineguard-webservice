@@ -25,10 +25,9 @@ public class DashboardRiskDriverQueryServiceImpl implements DashboardRiskDriverQ
                         m -> m,
                         (a, b) -> a.getRiskScore() >= b.getRiskScore() ? a : b));
         Map<Long, Double> riskByDriver = support.alerts().stream()
+                .filter(alert -> support.driverForAlert(alert).isPresent())
                 .collect(Collectors.groupingBy(
-                        alert -> support.driverForAlert(alert)
-                                .map(d -> d.getId())
-                                .orElse(null),
+                        alert -> support.driverForAlert(alert).get().getId(),
                         Collectors.summingDouble(alert -> switch (alert.getPriority()) {
                             case CRITICAL -> 20.0;
                             case HIGH -> 15.0;
