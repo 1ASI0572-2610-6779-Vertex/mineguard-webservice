@@ -24,6 +24,20 @@ public class DashboardRiskDriverQueryServiceImpl implements DashboardRiskDriverQ
                         com.mineguard.platform.analytics.domain.model.aggregates.PerformanceMetric::getDriverId,
                         m -> m,
                         (a, b) -> a.getRiskScore() >= b.getRiskScore() ? a : b));
+        Map<Long, Double> riskByDriver = support.alerts().stream()
+                .collect(Collectors.groupingBy(
+                        alert -> support.driverForAlert(alert)
+                                .map(d -> d.getId())
+                                .orElse(null),
+                        Collectors.summingDouble(alert -> switch (alert.getPriority()) {
+                            case CRITICAL -> 20.0;
+                            case HIGH -> 15.0;
+                            case WARNING -> 10.0;
+                            case MEDIUM -> 5.0;
+                            case LOW -> 2.0;
+                        })
+                ));
+
         return byDriver.values().stream()
                 .sorted(Comparator.comparingDouble(com.mineguard.platform.analytics.domain.model.aggregates.PerformanceMetric::getRiskScore).reversed())
 
@@ -33,7 +47,7 @@ public class DashboardRiskDriverQueryServiceImpl implements DashboardRiskDriverQ
                     var item = new DashboardRiskDriver(m.getDriverId(),
                             driver == null ? "" : driver.getFullName(),
                             vehicle == null ? "" : vehicle.getVehicleType(),
-                            m.getRiskScore());
+                            riskByDriver.getOrDefault(m.getDriverId(), 0.0));
                     item.setId(m.getId());
                     return item;
                 }).toList();
