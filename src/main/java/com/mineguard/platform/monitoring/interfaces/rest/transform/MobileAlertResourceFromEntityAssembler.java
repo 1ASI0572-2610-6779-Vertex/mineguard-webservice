@@ -13,7 +13,11 @@ public final class MobileAlertResourceFromEntityAssembler {
         String kind = switch (a.getType()) {
             case FATIGUE -> "fatigue";
             case COLLISION, IMMINENT_COLLISION, PROXIMITY_COLLISION, PROXIMITY -> "collisionRisk";
+            case HIGH_HEART_RATE, CARDIAC_ARREST -> "cardiac";
+            case EMERGENCY_SOS -> "sos";
         };
+        // A fatigue alert is the only one the operator can dismiss from the phone: the others
+        // describe a hazard the driver cannot clear by acknowledging it.
         String primaryAction = a.getType() == AlertType.FATIGUE ? "Marcar como Revisado" : null;
         return new MobileAlertResource(String.valueOf(a.getId()), kind, a.getTitle(), a.getDescription(),
                 a.getOccurredAt(), primaryAction);
