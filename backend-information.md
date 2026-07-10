@@ -512,7 +512,9 @@ Content-Type: `application/json`. Todos los campos usan `snake_case` estricto:
 | `lat`, `lng` | number, nullable | No | Coordenadas GPS. Enviar ambas o ninguna. |
 | `timestamp` | string (ISO-8601), nullable | No | Momento de la lectura. Si se omite, el servidor usa su propia hora de recepción. |
 
-Los campos `bpm`, `collision` y `sos` son primitivos en el backend: enviar `null` equivale a enviar `0`, `false` y `false` respectivamente. Omitirlos produce el mismo resultado.
+En `bpm`, `collision` y `sos`, enviar `null` equivale a omitir el campo: el backend los normaliza a `0`, `false` y `false` respectivamente. Los campos desconocidos en este payload se ignoran (a diferencia de los DTO de creación, que los rechazan con `400`).
+
+> **Nota para quien agregue campos nuevos a este contrato.** Deben declararse como tipos envueltos (`Double`, `Boolean`), nunca primitivos. Jackson 3 —el que trae Spring Boot 4— activa `FAIL_ON_NULL_FOR_PRIMITIVES` por defecto, al revés que Jackson 2. Un componente primitivo en `TelemetryIngestionRequest` hace que **todo** el payload se rechace con `400` cuando el campo viene ausente o `null`, y un firmware anterior al campo nuevo siempre lo omite. Es decir: agregar un campo opcional primitivo rompe a todos los dispositivos ya desplegados.
 
 ### Reglas de Negocio Detonadas por el Backend
 

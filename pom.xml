@@ -17,6 +17,14 @@
         (Angular), the operator mobile application (Flutter) and ingests telemetry synchronized from smart-band IoT
         edge services.</description>
 
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
     <properties>
         <java.version>21</java.version>
     </properties>
