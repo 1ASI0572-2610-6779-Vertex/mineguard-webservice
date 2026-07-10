@@ -131,3 +131,7 @@ view-model GET endpoints polled by the frontends. The smart-band edge authentica
 - **i18n:** `Accept-Language` header (`en` default, `es`).
 - `subscriptions` now includes the REST API for plan consultation, subscription lifecycle, payment
   processing and payment-method updates; `planning` and `profile` remain reserved/partial.
+
+## License
+
+Released under the [MIT License](LICENSE).
