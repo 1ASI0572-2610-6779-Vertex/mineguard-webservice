@@ -115,6 +115,8 @@
             <version>5.3.0</version>
         </dependency>
 
+
+
         <!-- Transactional email is sent via Brevo's HTTP API (RestClient from spring-web); no SMTP starter needed. -->
     </dependencies>
 
