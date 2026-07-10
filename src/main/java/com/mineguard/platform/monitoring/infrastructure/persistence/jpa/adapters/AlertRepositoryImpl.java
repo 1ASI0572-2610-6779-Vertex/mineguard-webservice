@@ -1,6 +1,7 @@
 package com.mineguard.platform.monitoring.infrastructure.persistence.jpa.adapters;
 
 import com.mineguard.platform.monitoring.domain.model.aggregates.Alert;
+import com.mineguard.platform.monitoring.domain.model.valueobjects.AlertStatus;
 import com.mineguard.platform.monitoring.domain.repositories.AlertRepository;
 import com.mineguard.platform.monitoring.infrastructure.persistence.jpa.assemblers.AlertPersistenceAssembler;
 import com.mineguard.platform.monitoring.infrastructure.persistence.jpa.repositories.AlertPersistenceRepository;
@@ -35,5 +36,13 @@ public class AlertRepositoryImpl implements AlertRepository {
     @Override
     public List<Alert> findAllByCompanyId(Long companyId) {
         return repository.findAllByCompanyId(companyId).stream().map(AlertPersistenceAssembler::toDomain).toList();
+    }
+
+    @Override
+    public Optional<Alert> findLatestActiveBySensorIdAndRawType(Long sensorId, String rawType) {
+        if (sensorId == null || rawType == null) return Optional.empty();
+        return repository
+                .findFirstBySensorIdAndRawTypeAndStatusOrderByOccurredAtDesc(sensorId, rawType, AlertStatus.ACTIVE)
+                .map(AlertPersistenceAssembler::toDomain);
     }
 }
