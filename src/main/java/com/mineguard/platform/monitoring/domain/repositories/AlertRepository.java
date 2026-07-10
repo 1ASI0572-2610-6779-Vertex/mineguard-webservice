@@ -10,4 +10,7 @@ public interface AlertRepository {
     Optional<Alert> findById(Long id);
     List<Alert> findAll();
     List<Alert> findAllByCompanyId(Long companyId);
+
+    /** Most recent alert of {@code rawType} for {@code sensorId} that is still ACTIVE, if any. */
+    Optional<Alert> findLatestActiveBySensorIdAndRawType(Long sensorId, String rawType);
 }
