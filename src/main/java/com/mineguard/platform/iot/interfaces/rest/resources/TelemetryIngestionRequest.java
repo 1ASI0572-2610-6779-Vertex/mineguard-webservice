@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @param bpm        heart rate in beats per minute (0 = not present)
  * @param distanceCm obstacle proximity reading in centimetres (null = not present)
  * @param collision  true when the edge device detected an impact event
+ * @param sos        true when the operator pressed the emergency button (absent/null → false)
  * @param lat        GPS latitude (null = not present)
  * @param lng        GPS longitude (null = not present)
  * @param timestamp  ISO-8601 timestamp of the reading (null → server time)
@@ -19,6 +20,7 @@ public record TelemetryIngestionRequest(
         @JsonProperty("bpm")         double  bpm,
         @JsonProperty("distance_cm") Integer distanceCm,
         @JsonProperty("collision")   boolean collision,
+        @JsonProperty("sos")         boolean sos,
         @JsonProperty("lat")         Double  lat,
         @JsonProperty("lng")         Double  lng,
         @JsonProperty("timestamp")   String  timestamp
