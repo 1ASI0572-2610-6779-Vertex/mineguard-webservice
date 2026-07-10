@@ -17,11 +17,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public record TelemetryIngestionRequest(
         @JsonProperty("device_id")   String  deviceId,
-        @JsonProperty("bpm")         double  bpm,
+        @JsonProperty("bpm")         Double  bpm,
         @JsonProperty("distance_cm") Integer distanceCm,
-        @JsonProperty("collision")   boolean collision,
-        @JsonProperty("sos")         boolean sos,
+        @JsonProperty("collision")   Boolean collision,
+        @JsonProperty("sos")         Boolean sos,
         @JsonProperty("lat")         Double  lat,
         @JsonProperty("lng")         Double  lng,
         @JsonProperty("timestamp")   String  timestamp
-) {}
+) {
+    /**
+     * Normalises the optional sensor flags so callers can treat them as primitives.
+     *
+     * <p>These MUST be boxed types. Jackson 3 enables {@code FAIL_ON_NULL_FOR_PRIMITIVES} by
+     * default (Jackson 2 did not), so a primitive component here rejects the whole payload with
+     * 400 whenever the field is absent or explicitly null — and a firmware that predates a new
+     * field always omits it. Boxing plus this constructor keeps the endpoint backward compatible
+     * with every device already in the field.</p>
+     */
+    public TelemetryIngestionRequest {
+        if (bpm == null) bpm = 0.0;
+        if (collision == null) collision = false;
+        if (sos == null) sos = false;
+    }
+}
